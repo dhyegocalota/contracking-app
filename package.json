@@ -1,0 +1,18 @@
+{
+  "name": "@dhyegocalota/contracking-app",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2",
+    "typescript": "^5"
+  }
+}
