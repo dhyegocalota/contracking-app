@@ -1,0 +1,11 @@
+INSERT INTO users (id, email, name, created_at) VALUES ('u1', 'test@test.com', 'Ana Silva', '2026-03-15T10:00:00.000Z');
+INSERT INTO sessions (id, user_id, expires_at) VALUES ('s1', 'u1', '2026-04-15T10:00:00.000Z');
+INSERT INTO tracking_sessions (id, user_id, public_id, patient_name, gestational_week, started_at) VALUES ('ts1', 'u1', 'demo-public-id', 'Ana Silva', 38, '2026-03-15T12:30:00.000Z');
+INSERT INTO contractions (id, session_id, started_at, ended_at, intensity, position) VALUES ('c1', 'ts1', '2026-03-15T14:21:00.000Z', '2026-03-15T14:21:45.000Z', 'moderate', 'walking');
+INSERT INTO contractions (id, session_id, started_at, ended_at, intensity, position) VALUES ('c2', 'ts1', '2026-03-15T14:33:00.000Z', '2026-03-15T14:33:35.000Z', 'mild', null);
+INSERT INTO contractions (id, session_id, started_at, ended_at, intensity, position) VALUES ('c3', 'ts1', '2026-03-15T14:39:00.000Z', '2026-03-15T14:39:55.000Z', 'strong', 'standing');
+INSERT INTO contractions (id, session_id, started_at, ended_at, intensity, position) VALUES ('c4', 'ts1', '2026-03-15T14:47:00.000Z', '2026-03-15T14:47:42.000Z', 'moderate', 'sitting');
+INSERT INTO contractions (id, session_id, started_at, ended_at, intensity, position) VALUES ('c5', 'ts1', '2026-03-15T14:52:00.000Z', '2026-03-15T14:52:58.000Z', 'strong', 'lying');
+INSERT INTO events (id, session_id, type, value, occurred_at) VALUES ('e1', 'ts1', 'dilation', '4cm', '2026-03-15T14:20:00.000Z');
+INSERT INTO events (id, session_id, type, value, occurred_at) VALUES ('e2', 'ts1', 'meal', null, '2026-03-15T12:00:00.000Z');
+INSERT INTO events (id, session_id, type, value, occurred_at) VALUES ('e3', 'ts1', 'water_break', null, '2026-03-15T13:45:00.000Z');

@@ -1,0 +1,16 @@
+{
+  "name": "@contracking/dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run server.ts",
+    "build": "bun run build.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@contracking/shared": "workspace:*",
+    "react": "^19",
+    "react-dom": "^19",
+    "lucide-react": "^0.460"
+  }
+}

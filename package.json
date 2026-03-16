@@ -9,7 +9,9 @@
   "scripts": {
     "test": "bun test",
     "lint": "bunx biome check .",
-    "lint:fix": "bunx biome check --write ."
+    "lint:fix": "bunx biome check --write .",
+    "typecheck": "bunx tsc --noEmit -p libs/shared/tsconfig.json",
+    "full-check": "bun run lint && bun run typecheck && bun run test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
