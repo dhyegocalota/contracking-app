@@ -21,7 +21,7 @@ type EditContractionProps = {
 function toTimeValue(date: Date | string | null): string {
   if (!date) return '';
   const d = new Date(date);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
 }
 
 function toDateValue(date: Date | string | null): string {
@@ -32,8 +32,8 @@ function toDateValue(date: Date | string | null): string {
 
 function combineDateAndTime({ date, time }: { date: string; time: string }): string {
   const [year, month, day] = date.split('-').map(Number);
-  const [hours, minutes] = time.split(':').map(Number);
-  const combined = new Date(year!, month! - 1, day!, hours, minutes);
+  const [hours, minutes, seconds] = time.split(':').map(Number);
+  const combined = new Date(year!, month! - 1, day!, hours, minutes, seconds ?? 0);
   return combined.toISOString();
 }
 
@@ -69,6 +69,7 @@ function TimeField({
       </span>
       <input
         type="time"
+        step="1"
         value={time}
         onChange={(event) => onTimeChange(event.target.value)}
         className="w-full"
