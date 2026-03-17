@@ -1,8 +1,9 @@
 import type { Contraction } from '@contracking/shared';
-import { DateRange, EventType, type Intensity, type Position, SyncStatus } from '@contracking/shared';
+import { DateRange, EventType, type Intensity, type Position, PushSubscriptionType, SyncStatus } from '@contracking/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocalSession } from '../hooks/use-local-session';
 import { useNotifications } from '../hooks/use-notifications';
+import { usePushSubscription } from '../hooks/use-push-subscription';
 import { useTimer } from '../hooks/use-timer';
 import { getPreferences, savePreferences } from '../storage';
 import { filterByDateRange } from '../utils/filter-by-date';
@@ -124,7 +125,9 @@ export function TrackingPage() {
     [timer, stopContraction, preferences, intensity, position],
   );
 
-  useNotifications({ activeContraction, onAutoStop: handleAutoStop });
+  const { subscribe: subscribePush } = usePushSubscription({ type: PushSubscriptionType.OWNER });
+
+  useNotifications({ activeContraction, onAutoStop: handleAutoStop, onPermissionGranted: subscribePush });
 
   const isVisuallyActive = activeContraction !== null && !isStopping;
 
