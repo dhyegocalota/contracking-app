@@ -71,3 +71,30 @@ export const DELETE_EVENT = 'DELETE FROM events WHERE id = ?';
 
 export const UPSERT_EVENT =
   'INSERT INTO events (id, user_id, type, value, occurred_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, value = excluded.value';
+
+export const UPSERT_PUSH_SUBSCRIPTION =
+  'INSERT INTO push_subscriptions (id, user_id, public_id, endpoint, key_p256dh, key_auth, type) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET key_p256dh = excluded.key_p256dh, key_auth = excluded.key_auth, type = excluded.type, user_id = excluded.user_id, public_id = excluded.public_id';
+
+export const DELETE_PUSH_SUBSCRIPTION_BY_ENDPOINT =
+  'DELETE FROM push_subscriptions WHERE endpoint = ? AND key_auth = ?';
+
+export const SELECT_PUSH_SUBSCRIPTIONS_BY_USER =
+  'SELECT * FROM push_subscriptions WHERE user_id = ?';
+
+export const SELECT_PUSH_SUBSCRIPTIONS_BY_PUBLIC_ID =
+  'SELECT * FROM push_subscriptions WHERE public_id = ?';
+
+export const DELETE_PUSH_SUBSCRIPTION =
+  'DELETE FROM push_subscriptions WHERE id = ?';
+
+export const UPDATE_PUSH_SUBSCRIPTION_LAST_USED =
+  'UPDATE push_subscriptions SET last_used_at = ? WHERE id = ?';
+
+export const SELECT_ACTIVE_CONTRACTIONS_PAST_THRESHOLD =
+  'SELECT c.*, ts.public_id FROM contractions c JOIN tracking_sessions ts ON c.user_id = ts.user_id AND ts.ended_at IS NULL WHERE c.ended_at IS NULL AND c.started_at < ? GROUP BY c.id';
+
+export const SELECT_PUSH_NOTIFICATION_LOG =
+  'SELECT * FROM push_notification_log WHERE contraction_id = ? AND notification_type = ?';
+
+export const INSERT_PUSH_NOTIFICATION_LOG =
+  'INSERT INTO push_notification_log (id, contraction_id, notification_type) VALUES (?, ?, ?)';
