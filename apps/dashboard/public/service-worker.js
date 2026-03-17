@@ -1,4 +1,4 @@
-const CACHE_NAME = 'contracking-v5';
+const CACHE_NAME = 'contracking-v6';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/index.html'])));
@@ -99,15 +99,30 @@ self.addEventListener('message', (event) => {
   }
 });
 
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  const payload = event.data.json();
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      tag: payload.type,
+      renotify: true,
+      data: { url: payload.url },
+    }),
+  );
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const url = event.notification.data?.url || '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then((clients) => {
       if (clients.length > 0) {
         clients[0].focus();
+        clients[0].navigate(url);
         return;
       }
-      self.clients.openWindow('/');
+      self.clients.openWindow(url);
     }),
   );
 });
