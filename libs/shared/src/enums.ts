@@ -35,3 +35,14 @@ export enum SyncStatus {
   SYNCED = 'synced',
   UNSYNCED = 'unsynced',
 }
+
+export enum PushSubscriptionType {
+  OWNER = 'owner',
+  COMPANION = 'companion',
+}
+
+export enum PushNotificationType {
+  LONG_CONTRACTION = 'long_contraction',
+  FIVE_ONE_ONE = 'five_one_one',
+  NEW_CONTRACTION = 'new_contraction',
+}

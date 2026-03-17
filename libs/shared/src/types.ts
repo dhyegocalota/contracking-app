@@ -1,4 +1,4 @@
-import type { EventType, Intensity, Position } from './enums';
+import type { EventType, Intensity, Position, PushNotificationType, PushSubscriptionType } from './enums';
 
 export type User = {
   id: string;
@@ -92,4 +92,30 @@ export type EventRow = {
   type: EventType;
   value: string | null;
   occurred_at: string;
+};
+
+export type PushNotificationPayload = {
+  title: string;
+  body: string;
+  url?: string;
+  type: PushNotificationType;
+};
+
+export type PushSubscriptionRow = {
+  id: string;
+  user_id: string | null;
+  public_id: string | null;
+  endpoint: string;
+  key_p256dh: string;
+  key_auth: string;
+  type: PushSubscriptionType;
+  created_at: string;
+  last_used_at: string | null;
+};
+
+export type PushNotificationLogRow = {
+  id: string;
+  contraction_id: string;
+  notification_type: PushNotificationType;
+  sent_at: string;
 };

@@ -21,3 +21,5 @@ export const CONTRACTION_WARNING_SECONDS = 180;
 export const CONTRACTION_MAX_DURATION_SECONDS = 300;
 export const AUTH_TOKEN_STORAGE_KEY = 'contracking_auth_token';
 export const OTP_LENGTH = 6;
+export const PUSH_SUBSCRIPTION_STORAGE_KEY = 'contracking_push_subscribed';
+export const CRON_CHECK_INTERVAL_MINUTES = 1;
