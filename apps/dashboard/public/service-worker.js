@@ -65,7 +65,7 @@ self.addEventListener('message', (event) => {
       setTimeout(() => {
         self.registration.showNotification('Contracking', {
           body: 'Contração longa! Esqueceu de parar?',
-          tag: 'contraction-warning',
+          tag: 'contraction-alert',
           renotify: true,
         });
       }, 120000),
@@ -74,7 +74,7 @@ self.addEventListener('message', (event) => {
       setTimeout(() => {
         self.registration.showNotification('Contracking', {
           body: 'Contração ativa há 3 minutos! Toque para parar.',
-          tag: 'contraction-warning',
+          tag: 'contraction-alert',
           renotify: true,
         });
       }, 180000),
@@ -95,6 +95,15 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'CONTRACTION_STOPPED') {
     for (const id of contractionTimeouts) clearTimeout(id);
     contractionTimeouts = [];
+    self.registration.getNotifications().then((notifications) => {
+      notifications.forEach((notification) => notification.close());
+    });
+    return;
+  }
+  if (event.data?.type === 'CLEAR_NOTIFICATIONS') {
+    self.registration.getNotifications().then((notifications) => {
+      notifications.forEach((notification) => notification.close());
+    });
     return;
   }
 });
@@ -103,11 +112,15 @@ self.addEventListener('push', (event) => {
   if (!event.data) return;
   const payload = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      tag: payload.type,
-      renotify: true,
-      data: { url: payload.url },
+    self.clients.matchAll({ type: 'window', includeUncontrolled: false }).then((clients) => {
+      const hasVisibleClient = clients.some((client) => client.visibilityState === 'visible');
+      if (hasVisibleClient) return;
+      return self.registration.showNotification(payload.title, {
+        body: payload.body,
+        tag: 'contraction-alert',
+        renotify: true,
+        data: { url: payload.url },
+      });
     }),
   );
 });

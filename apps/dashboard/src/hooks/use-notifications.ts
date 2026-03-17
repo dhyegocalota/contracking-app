@@ -10,7 +10,7 @@ const NOTIFICATION_CHECK_INTERVAL_MILLISECONDS = 5000;
 
 type NotificationLevel = 'timeout' | 'warning' | 'max';
 
-type ServiceWorkerMessageType = 'CONTRACTION_STARTED' | 'CONTRACTION_STOPPED';
+type ServiceWorkerMessageType = 'CONTRACTION_STARTED' | 'CONTRACTION_STOPPED' | 'CLEAR_NOTIFICATIONS';
 
 type UseNotificationsOptions = {
   activeContraction: Contraction | null;
@@ -103,4 +103,13 @@ export function useNotifications({ activeContraction, onAutoStop, onPermissionGr
     const intervalId = setInterval(checkTimeout, NOTIFICATION_CHECK_INTERVAL_MILLISECONDS);
     return () => clearInterval(intervalId);
   }, [activeContraction]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') notifyServiceWorker('CLEAR_NOTIFICATIONS');
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    notifyServiceWorker('CLEAR_NOTIFICATIONS');
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 }
