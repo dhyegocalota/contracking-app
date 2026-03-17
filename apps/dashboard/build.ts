@@ -22,6 +22,7 @@ await Bun.build({
   plugins: [tailwindcss],
   define: {
     'process.env.BUILD_VERSION': JSON.stringify(buildVersion),
+    'process.env.BUILD_TIMESTAMP': JSON.stringify(new Date().toISOString()),
     'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
     'process.env.TURNSTILE_SITE_KEY': JSON.stringify(process.env.TURNSTILE_SITE_KEY),
   },

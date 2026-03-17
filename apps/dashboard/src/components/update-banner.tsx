@@ -3,9 +3,14 @@ import { useEffect, useState } from 'react';
 
 const VERSION_CHECK_INTERVAL_MILLISECONDS = 60000;
 const BUILD_VERSION = process.env.BUILD_VERSION ?? 'dev';
+const BUILD_TIMESTAMP = process.env.BUILD_TIMESTAMP ?? null;
 
 export function getBuildVersion(): string {
   return BUILD_VERSION;
+}
+
+export function getBuildTimestamp(): string | null {
+  return BUILD_TIMESTAMP;
 }
 
 async function fetchLatestVersion(): Promise<string | null> {

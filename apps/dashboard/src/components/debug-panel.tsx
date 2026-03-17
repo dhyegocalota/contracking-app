@@ -1,7 +1,7 @@
-import type { SyncStatus } from '@contracking/shared';
-import { useState } from 'react';
+import { PUSH_SUBSCRIPTION_STORAGE_KEY, type SyncStatus } from '@contracking/shared';
+import { useEffect, useState } from 'react';
 import { getLocalSession } from '../storage';
-import { getBuildVersion } from './update-banner';
+import { getBuildTimestamp, getBuildVersion } from './update-banner';
 
 type DebugPanelProps = {
   syncStatus: SyncStatus;
@@ -9,11 +9,41 @@ type DebugPanelProps = {
   publicId: string | null;
 };
 
+function formatTimestamp(isoString: string | null): string | null {
+  if (!isoString) return null;
+  return new Date(isoString).toLocaleString();
+}
+
+async function getPushSubscriptionInfo(): Promise<{
+  permission: string;
+  localStorageType: string | null;
+  endpoint: string | null;
+}> {
+  const permission = 'Notification' in window ? Notification.permission : 'unsupported';
+  const localStorageType = localStorage.getItem(PUSH_SUBSCRIPTION_STORAGE_KEY);
+
+  let endpoint: string | null = null;
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    endpoint = subscription?.endpoint ?? null;
+  }
+
+  return { permission, localStorageType, endpoint };
+}
+
 export function DebugPanel({ syncStatus, userEmail, publicId }: DebugPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [pushInfo, setPushInfo] = useState<{ permission: string; localStorageType: string | null; endpoint: string | null } | null>(null);
   const session = getLocalSession();
   const buildVersion = getBuildVersion();
+  const buildTimestamp = getBuildTimestamp();
+
+  useEffect(() => {
+    if (!expanded) return;
+    getPushSubscriptionInfo().then(setPushInfo);
+  }, [expanded]);
 
   if (!expanded) {
     return (
@@ -31,6 +61,7 @@ export function DebugPanel({ syncStatus, userEmail, publicId }: DebugPanelProps)
   const debugData = JSON.stringify(
     {
       version: buildVersion,
+      deployedAt: formatTimestamp(buildTimestamp),
       syncStatus,
       userEmail,
       publicId: publicId ? `${publicId.slice(0, 8)}...` : null,
@@ -38,6 +69,13 @@ export function DebugPanel({ syncStatus, userEmail, publicId }: DebugPanelProps)
       unsynced: session?.contractions.filter((c) => c.syncedAt === null).length ?? 0,
       tombstones: session?.tombstones.length ?? 0,
       online: navigator.onLine,
+      push: pushInfo
+        ? {
+            permission: pushInfo.permission,
+            subscribedAs: pushInfo.localStorageType,
+            endpoint: pushInfo.endpoint ? `${pushInfo.endpoint.slice(0, 60)}...` : null,
+          }
+        : 'loading...',
       lastSync: JSON.parse(localStorage.getItem('contracking_debug_sync') ?? 'null'),
     },
     null,
