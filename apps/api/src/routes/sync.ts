@@ -1,5 +1,5 @@
 import type { ContractionRow, EventRow, PushSubscriptionRow, TrackingSessionRow } from '@contracking/shared';
-import { PushNotificationType, calculateSessionStats } from '@contracking/shared';
+import { calculateSessionStats, PushNotificationType } from '@contracking/shared';
 import { mapContractionRow, mapEventRow, mapTrackingSessionRow } from '../db/mappers';
 import {
   DELETE_CONTRACTION,
@@ -12,10 +12,10 @@ import {
   UPSERT_CONTRACTION,
   UPSERT_EVENT,
 } from '../db/queries';
-import { sendPush } from '../utils/send-push';
 import { getAuthenticatedUser } from '../middleware/auth';
 import type { Environment } from '../types';
 import { jsonResponse } from '../utils';
+import { sendPush } from '../utils/send-push';
 
 type SyncBody = {
   patientName: string | null;
@@ -172,7 +172,9 @@ export async function handleSync({ request, env }: HandlerParams): Promise<Respo
   try {
     const response = await syncUserData({ env, userId: user.id, body });
 
-    const sessionRow = await env.DATABASE.prepare(SELECT_USER_TRACKING_SESSION).bind(user.id).first<TrackingSessionRow>();
+    const sessionRow = await env.DATABASE.prepare(SELECT_USER_TRACKING_SESSION)
+      .bind(user.id)
+      .first<TrackingSessionRow>();
     if (sessionRow?.public_id) {
       const hasNewFinishedContractions = body.contractions.some((contraction) => contraction.endedAt !== null);
       if (hasNewFinishedContractions) {

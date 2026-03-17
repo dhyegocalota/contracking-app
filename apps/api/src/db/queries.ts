@@ -78,17 +78,13 @@ export const UPSERT_PUSH_SUBSCRIPTION =
 export const DELETE_PUSH_SUBSCRIPTION_BY_ENDPOINT =
   'DELETE FROM push_subscriptions WHERE endpoint = ? AND key_auth = ?';
 
-export const SELECT_PUSH_SUBSCRIPTIONS_BY_USER =
-  'SELECT * FROM push_subscriptions WHERE user_id = ?';
+export const SELECT_PUSH_SUBSCRIPTIONS_BY_USER = 'SELECT * FROM push_subscriptions WHERE user_id = ?';
 
-export const SELECT_PUSH_SUBSCRIPTIONS_BY_PUBLIC_ID =
-  'SELECT * FROM push_subscriptions WHERE public_id = ?';
+export const SELECT_PUSH_SUBSCRIPTIONS_BY_PUBLIC_ID = 'SELECT * FROM push_subscriptions WHERE public_id = ?';
 
-export const DELETE_PUSH_SUBSCRIPTION =
-  'DELETE FROM push_subscriptions WHERE id = ?';
+export const DELETE_PUSH_SUBSCRIPTION = 'DELETE FROM push_subscriptions WHERE id = ?';
 
-export const UPDATE_PUSH_SUBSCRIPTION_LAST_USED =
-  'UPDATE push_subscriptions SET last_used_at = ? WHERE id = ?';
+export const UPDATE_PUSH_SUBSCRIPTION_LAST_USED = 'UPDATE push_subscriptions SET last_used_at = ? WHERE id = ?';
 
 export const SELECT_ACTIVE_CONTRACTIONS_PAST_THRESHOLD =
   'SELECT c.*, ts.public_id FROM contractions c JOIN tracking_sessions ts ON c.user_id = ts.user_id AND ts.ended_at IS NULL WHERE c.ended_at IS NULL AND c.started_at < ? GROUP BY c.id';

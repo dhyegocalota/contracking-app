@@ -3,11 +3,7 @@ import { buildVapidHeaders, encryptPayload } from './send-push';
 
 describe('buildVapidHeaders', () => {
   test('returns valid Authorization and Crypto-Key headers', async () => {
-    const keyPair = await crypto.subtle.generateKey(
-      { name: 'ECDSA', namedCurve: 'P-256' },
-      true,
-      ['sign'],
-    );
+    const keyPair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']);
     const publicKeyRaw = await crypto.subtle.exportKey('raw', keyPair.publicKey);
     const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKeyRaw)))
       .replace(/\+/g, '-')
@@ -31,11 +27,7 @@ describe('buildVapidHeaders', () => {
 
 describe('encryptPayload', () => {
   test('returns encrypted buffer with correct content encoding headers', async () => {
-    const keyPair = await crypto.subtle.generateKey(
-      { name: 'ECDH', namedCurve: 'P-256' },
-      true,
-      ['deriveBits'],
-    );
+    const keyPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
     const publicKeyRaw = await crypto.subtle.exportKey('raw', keyPair.publicKey);
     const p256dh = btoa(String.fromCharCode(...new Uint8Array(publicKeyRaw)))
       .replace(/\+/g, '-')

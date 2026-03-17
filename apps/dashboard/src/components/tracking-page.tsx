@@ -1,5 +1,12 @@
 import type { Contraction } from '@contracking/shared';
-import { DateRange, EventType, type Intensity, type Position, PushSubscriptionType, SyncStatus } from '@contracking/shared';
+import {
+  DateRange,
+  EventType,
+  type Intensity,
+  type Position,
+  PushSubscriptionType,
+  SyncStatus,
+} from '@contracking/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocalSession } from '../hooks/use-local-session';
 import { useNotifications } from '../hooks/use-notifications';

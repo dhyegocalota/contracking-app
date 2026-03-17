@@ -48,13 +48,7 @@ async function hkdfExtract(salt: Uint8Array, inputKeyingMaterial: Uint8Array): P
 }
 
 async function hkdfExpand(pseudoRandomKey: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    pseudoRandomKey,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
+  const key = await crypto.subtle.importKey('raw', pseudoRandomKey, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const infoWithCounter = new Uint8Array([...info, 1]);
   const outputKeyingMaterial = new Uint8Array(await crypto.subtle.sign('HMAC', key, infoWithCounter));
   return outputKeyingMaterial.slice(0, length);
@@ -70,12 +64,7 @@ async function hkdf(
   return hkdfExpand(pseudoRandomKey, info, length);
 }
 
-export async function buildVapidHeaders({
-  audience,
-  subject,
-  publicKey,
-  privateKey,
-}: VapidHeaderParams): Promise<{
+export async function buildVapidHeaders({ audience, subject, publicKey, privateKey }: VapidHeaderParams): Promise<{
   Authorization: string;
   'Crypto-Key': string;
 }> {
@@ -97,13 +86,9 @@ export async function buildVapidHeaders({
     y: uint8ArrayToBase64Url(publicKeyBytes.slice(33, 65)),
   };
 
-  const signingKey = await crypto.subtle.importKey(
-    'jwk',
-    jsonWebKey,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    false,
-    ['sign'],
-  );
+  const signingKey = await crypto.subtle.importKey('jwk', jsonWebKey, { name: 'ECDSA', namedCurve: 'P-256' }, false, [
+    'sign',
+  ]);
   const signature = await crypto.subtle.sign(
     { name: 'ECDSA', hash: 'SHA-256' },
     signingKey,
@@ -123,25 +108,15 @@ export async function buildVapidHeaders({
   };
 }
 
-export async function encryptPayload({
-  payload,
-  p256dh,
-  auth,
-}: EncryptParams): Promise<{
+export async function encryptPayload({ payload, p256dh, auth }: EncryptParams): Promise<{
   body: ArrayBuffer;
   headers: { 'Content-Encoding': string; 'Content-Type': string };
 }> {
   const clientPublicKey = base64UrlToUint8Array(p256dh);
   const authSecret = base64UrlToUint8Array(auth);
 
-  const serverKeyPair = await crypto.subtle.generateKey(
-    { name: 'ECDH', namedCurve: 'P-256' },
-    true,
-    ['deriveBits'],
-  );
-  const serverPublicKeyRaw = new Uint8Array(
-    await crypto.subtle.exportKey('raw', serverKeyPair.publicKey),
-  );
+  const serverKeyPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const serverPublicKeyRaw = new Uint8Array(await crypto.subtle.exportKey('raw', serverKeyPair.publicKey));
 
   const clientKey = await crypto.subtle.importKey(
     'raw',
@@ -151,11 +126,7 @@ export async function encryptPayload({
     [],
   );
   const sharedSecret = new Uint8Array(
-    await crypto.subtle.deriveBits(
-      { name: 'ECDH', public: clientKey },
-      serverKeyPair.privateKey,
-      256,
-    ),
+    await crypto.subtle.deriveBits({ name: 'ECDH', public: clientKey }, serverKeyPair.privateKey, 256),
   );
 
   const inputKeyingMaterialInfo = new TextEncoder().encode('WebPush: info\0');
@@ -177,26 +148,13 @@ export async function encryptPayload({
   const payloadBytes = new TextEncoder().encode(payload);
   const paddedPayload = new Uint8Array([...payloadBytes, 2]);
 
-  const aesKey = await crypto.subtle.importKey(
-    'raw',
-    contentEncryptionKey,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt'],
-  );
-  const encrypted = new Uint8Array(
-    await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aesKey, paddedPayload),
-  );
+  const aesKey = await crypto.subtle.importKey('raw', contentEncryptionKey, { name: 'AES-GCM' }, false, ['encrypt']);
+  const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aesKey, paddedPayload));
 
   const recordSize = new Uint8Array(4);
   new DataView(recordSize.buffer).setUint32(0, paddedPayload.length + 16 + 1);
 
-  const headerBytes = new Uint8Array([
-    ...salt,
-    ...recordSize,
-    serverPublicKeyRaw.length,
-    ...serverPublicKeyRaw,
-  ]);
+  const headerBytes = new Uint8Array([...salt, ...recordSize, serverPublicKeyRaw.length, ...serverPublicKeyRaw]);
 
   const body = new Uint8Array([...headerBytes, ...encrypted]);
 
@@ -249,10 +207,7 @@ export async function sendPush({
   }
 
   if (response.ok) {
-    await database
-      .prepare(UPDATE_PUSH_SUBSCRIPTION_LAST_USED)
-      .bind(new Date().toISOString(), subscription.id)
-      .run();
+    await database.prepare(UPDATE_PUSH_SUBSCRIPTION_LAST_USED).bind(new Date().toISOString(), subscription.id).run();
   }
 
   return response.ok;

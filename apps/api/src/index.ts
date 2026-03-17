@@ -1,5 +1,4 @@
 import { handleCorsPreflight, withCors } from './middleware/cors';
-import { handleScheduled } from './scheduled';
 import { handleLogout, handleMagicLink, handleMe, handleVerify, handleVerifyOtp } from './routes/auth';
 import { handleCreateContraction, handleDeleteContraction, handleUpdateContraction } from './routes/contractions';
 import { handleCreateEvent, handleDeleteEvent } from './routes/events';
@@ -13,6 +12,7 @@ import {
   handleUpdateSession,
 } from './routes/sessions';
 import { handleGetMySession, handleSync, handleSyncSession } from './routes/sync';
+import { handleScheduled } from './scheduled';
 import type { Environment } from './types';
 import { jsonResponse } from './utils';
 
