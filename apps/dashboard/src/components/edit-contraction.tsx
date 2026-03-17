@@ -46,6 +46,15 @@ const INPUT_STYLE = {
   fontFamily: 'inherit',
 };
 
+const TIME_PATTERN = /^\d{0,2}:?\d{0,2}:?\d{0,2}$/;
+
+function formatTimeInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 6);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4)}`;
+}
+
 function TimeField({
   label,
   time,
@@ -59,6 +68,11 @@ function TimeField({
   onTimeChange: (value: string) => void;
   onDateChange: (value: string) => void;
 }) {
+  const handleTimeInput = (raw: string) => {
+    const formatted = formatTimeInput(raw);
+    if (TIME_PATTERN.test(formatted)) onTimeChange(formatted);
+  };
+
   return (
     <div
       className="flex-1 flex flex-col gap-1 p-3 rounded-[10px]"
@@ -68,10 +82,11 @@ function TimeField({
         {label}
       </span>
       <input
-        type="time"
-        step="1"
+        type="text"
+        inputMode="numeric"
+        placeholder="HH:MM:SS"
         value={time}
-        onChange={(event) => onTimeChange(event.target.value)}
+        onChange={(event) => handleTimeInput(event.target.value)}
         className="w-full"
         style={{ ...INPUT_STYLE, fontSize: 22, color: 'var(--text-primary)', fontWeight: 600 }}
       />
