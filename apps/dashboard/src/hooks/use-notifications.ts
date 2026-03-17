@@ -15,14 +15,8 @@ type ServiceWorkerMessageType = 'CONTRACTION_STARTED' | 'CONTRACTION_STOPPED';
 type UseNotificationsOptions = {
   activeContraction: Contraction | null;
   onAutoStop: (contractionId: string) => void;
+  onPermissionGranted?: () => void;
 };
-
-function requestPermissionIfNeeded(): void {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-}
 
 function sendNotification(body: string): void {
   if (!('Notification' in window)) return;
@@ -49,17 +43,27 @@ const NOTIFICATION_THRESHOLDS: Record<NotificationLevel, number> = {
   max: CONTRACTION_MAX_DURATION_SECONDS * 1000,
 };
 
-export function useNotifications({ activeContraction, onAutoStop }: UseNotificationsOptions) {
+export function useNotifications({ activeContraction, onAutoStop, onPermissionGranted }: UseNotificationsOptions) {
   const notifiedLevels = useRef(new Map<string, Set<NotificationLevel>>());
   const onAutoStopRef = useRef(onAutoStop);
   onAutoStopRef.current = onAutoStop;
+  const onPermissionGrantedRef = useRef(onPermissionGranted);
+  onPermissionGrantedRef.current = onPermissionGranted;
 
   useEffect(() => {
     if (!activeContraction) {
       notifyServiceWorker('CONTRACTION_STOPPED');
       return;
     }
-    requestPermissionIfNeeded();
+    if (!('Notification' in window)) {
+      notifyServiceWorker('CONTRACTION_STARTED');
+      return;
+    }
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then((result) => {
+        if (result === 'granted') onPermissionGrantedRef.current?.();
+      });
+    }
     notifyServiceWorker('CONTRACTION_STARTED');
   }, [activeContraction]);
 
