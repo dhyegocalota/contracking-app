@@ -1,5 +1,5 @@
-import type { ContractionRow, EventRow, TrackingSessionRow } from '@contracking/shared';
-import { calculateSessionStats } from '@contracking/shared';
+import type { ContractionRow, EventRow, PushSubscriptionRow, TrackingSessionRow } from '@contracking/shared';
+import { PushNotificationType, calculateSessionStats } from '@contracking/shared';
 import { mapContractionRow, mapEventRow, mapTrackingSessionRow } from '../db/mappers';
 import {
   DELETE_CONTRACTION,
@@ -7,10 +7,12 @@ import {
   INSERT_TRACKING_SESSION,
   SELECT_CONTRACTIONS_BY_USER,
   SELECT_EVENTS_BY_USER,
+  SELECT_PUSH_SUBSCRIPTIONS_BY_PUBLIC_ID,
   SELECT_USER_TRACKING_SESSION,
   UPSERT_CONTRACTION,
   UPSERT_EVENT,
 } from '../db/queries';
+import { sendPush } from '../utils/send-push';
 import { getAuthenticatedUser } from '../middleware/auth';
 import type { Environment } from '../types';
 import { jsonResponse } from '../utils';
@@ -117,6 +119,33 @@ async function syncUserData({
   return jsonResponse({ session, contractions, events, stats });
 }
 
+async function notifyCompanions({
+  env,
+  publicId,
+  payload,
+}: {
+  env: Environment;
+  publicId: string;
+  payload: { title: string; body: string; url: string; type: PushNotificationType };
+}): Promise<void> {
+  const { results: subscriptions } = await env.DATABASE.prepare(SELECT_PUSH_SUBSCRIPTIONS_BY_PUBLIC_ID)
+    .bind(publicId)
+    .all<PushSubscriptionRow>();
+
+  await Promise.all(
+    subscriptions.map((subscription) =>
+      sendPush({
+        subscription,
+        payload,
+        vapidPublicKey: env.VAPID_PUBLIC_KEY,
+        vapidPrivateKey: env.VAPID_PRIVATE_KEY,
+        vapidSubject: env.VAPID_SUBJECT,
+        database: env.DATABASE,
+      }),
+    ),
+  );
+}
+
 export async function handleSync({ request, env }: HandlerParams): Promise<Response> {
   let body: SyncBody & { authToken?: string };
 
@@ -141,7 +170,40 @@ export async function handleSync({ request, env }: HandlerParams): Promise<Respo
   if (!user) return jsonResponse({ error: 'unauthorized' }, 401);
 
   try {
-    return await syncUserData({ env, userId: user.id, body });
+    const response = await syncUserData({ env, userId: user.id, body });
+
+    const sessionRow = await env.DATABASE.prepare(SELECT_USER_TRACKING_SESSION).bind(user.id).first<TrackingSessionRow>();
+    if (sessionRow?.public_id) {
+      const hasNewFinishedContractions = body.contractions.some((contraction) => contraction.endedAt !== null);
+      if (hasNewFinishedContractions) {
+        notifyCompanions({
+          env,
+          publicId: sessionRow.public_id,
+          payload: {
+            title: 'Contracking',
+            body: 'Nova contração registrada',
+            url: `/s/${sessionRow.public_id}`,
+            type: PushNotificationType.NEW_CONTRACTION,
+          },
+        }).catch(() => {});
+      }
+
+      const responseData = await response.clone().json<{ stats: { alertFiveOneOne: boolean } }>();
+      if (responseData.stats.alertFiveOneOne) {
+        notifyCompanions({
+          env,
+          publicId: sessionRow.public_id,
+          payload: {
+            title: 'Contracking',
+            body: 'Padrão 5-1-1 detectado! Considere ir à maternidade.',
+            url: `/s/${sessionRow.public_id}`,
+            type: PushNotificationType.FIVE_ONE_ONE,
+          },
+        }).catch(() => {});
+      }
+    }
+
+    return response;
   } catch (syncError) {
     return jsonResponse({ error: 'sync failed', details: String(syncError) }, 500);
   }

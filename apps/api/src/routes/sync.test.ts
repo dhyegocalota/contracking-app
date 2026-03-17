@@ -1,5 +1,12 @@
-import { describe, expect, test } from 'bun:test';
-import { handleGetMySession, handleSync, handleSyncSession } from './sync';
+import { describe, expect, mock, test } from 'bun:test';
+import { PushNotificationType } from '@contracking/shared';
+
+const sendPushMock = mock(() => Promise.resolve(true));
+mock.module('../utils/send-push', () => ({
+  sendPush: sendPushMock,
+}));
+
+const { handleGetMySession, handleSync, handleSyncSession } = await import('./sync');
 
 const SESSION_COOKIE = 'contracking_session=session-1';
 
@@ -27,12 +34,23 @@ const TRACKING_SESSION_ROW = {
   timezone: 'America/Sao_Paulo',
 };
 
+const PUSH_SUBSCRIPTION_ROW = {
+  id: 'push-1',
+  public_id: 'public-1',
+  endpoint: 'https://push.example.com/sub/1',
+  key_p256dh: 'test-p256dh',
+  key_auth: 'test-auth',
+  created_at: new Date().toISOString(),
+  last_used_at: null,
+};
+
 function makeDatabase({
   sessionRow = AUTH_SESSION_ROW,
   userRow = USER_ROW,
   userTrackingSessionRow = TRACKING_SESSION_ROW as unknown,
   contractionRows = [] as unknown[],
   eventRows = [] as unknown[],
+  pushSubscriptionRows = [] as unknown[],
 } = {}) {
   return {
     prepare: (query: string) => ({
@@ -47,6 +65,7 @@ function makeDatabase({
         all: () => {
           if (query.includes('contractions WHERE user_id')) return Promise.resolve({ results: contractionRows });
           if (query.includes('events WHERE user_id')) return Promise.resolve({ results: eventRows });
+          if (query.includes('push_subscriptions')) return Promise.resolve({ results: pushSubscriptionRows });
           return Promise.resolve({ results: [] });
         },
       }),
@@ -61,6 +80,9 @@ function makeEnvironment(database: D1Database = makeDatabase()) {
     RESEND_API_KEY: 'test-key',
     DASHBOARD_URL: 'http://localhost:3000',
     TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA',
+    VAPID_PUBLIC_KEY: 'test-vapid-public',
+    VAPID_PRIVATE_KEY: 'test-vapid-private',
+    VAPID_SUBJECT: 'mailto:test@example.com',
   };
 }
 
@@ -219,6 +241,58 @@ describe('handleGetMySession', () => {
     }>();
     expect(body.session).toBeDefined();
     expect(body.stats).toBeDefined();
+  });
+});
+
+describe('handleSync companion push notifications', () => {
+  test('sends NEW_CONTRACTION push when syncing finished contractions', async () => {
+    sendPushMock.mockClear();
+    const database = makeDatabase({ pushSubscriptionRows: [PUSH_SUBSCRIPTION_ROW] });
+    const request = makeRequest('POST', 'http://localhost/sync', SYNC_BODY);
+    const response = await handleSync({ request, env: makeEnvironment(database) as never });
+    expect(response.status).toBe(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const newContractionCall = sendPushMock.mock.calls.find(
+      (call) => (call[0] as { payload: { type: string } }).payload.type === PushNotificationType.NEW_CONTRACTION,
+    );
+    expect(newContractionCall).toBeDefined();
+  });
+
+  test('does not send push when no finished contractions', async () => {
+    sendPushMock.mockClear();
+    const unfinishedBody = {
+      ...SYNC_BODY,
+      contractions: [{ ...SYNC_BODY.contractions[0], endedAt: null }],
+    };
+    const database = makeDatabase({ pushSubscriptionRows: [PUSH_SUBSCRIPTION_ROW] });
+    const request = makeRequest('POST', 'http://localhost/sync', unfinishedBody);
+    const response = await handleSync({ request, env: makeEnvironment(database) as never });
+    expect(response.status).toBe(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const newContractionCall = sendPushMock.mock.calls.find(
+      (call) => (call[0] as { payload: { type: string } }).payload.type === PushNotificationType.NEW_CONTRACTION,
+    );
+    expect(newContractionCall).toBeUndefined();
+  });
+
+  test('does not send push when no public_id on session', async () => {
+    sendPushMock.mockClear();
+    const sessionWithoutPublicId = { ...TRACKING_SESSION_ROW, public_id: null };
+    const database = makeDatabase({
+      userTrackingSessionRow: sessionWithoutPublicId,
+      pushSubscriptionRows: [PUSH_SUBSCRIPTION_ROW],
+    });
+    const request = makeRequest('POST', 'http://localhost/sync', SYNC_BODY);
+    const response = await handleSync({ request, env: makeEnvironment(database) as never });
+    expect(response.status).toBe(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(sendPushMock).not.toHaveBeenCalled();
   });
 });
 
