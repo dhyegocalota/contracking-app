@@ -12,3 +12,6 @@ binding = "DATABASE"
 database_name = "contracking"
 database_id = "c7890c46-d847-48e6-90c2-8d1a0c09b6fc"
 migrations_dir = "migrations"
+
+[triggers]
+crons = ["* * * * *"]

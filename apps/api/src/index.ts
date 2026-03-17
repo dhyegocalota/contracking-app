@@ -1,4 +1,5 @@
 import { handleCorsPreflight, withCors } from './middleware/cors';
+import { handleScheduled } from './scheduled';
 import { handleLogout, handleMagicLink, handleMe, handleVerify, handleVerifyOtp } from './routes/auth';
 import { handleCreateContraction, handleDeleteContraction, handleUpdateContraction } from './routes/contractions';
 import { handleCreateEvent, handleDeleteEvent } from './routes/events';
@@ -25,6 +26,10 @@ const PUBLIC_ID_PATTERN = /^\/public\/([^/]+)$/;
 const PUBLIC_POLL_PATTERN = /^\/public\/([^/]+)\/poll$/;
 
 export default {
+  async scheduled(_event: ScheduledEvent, env: Environment, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(handleScheduled(env));
+  },
+
   async fetch(request: Request, env: Environment): Promise<Response> {
     const preflight = handleCorsPreflight({ request, env });
     if (preflight) return preflight;
