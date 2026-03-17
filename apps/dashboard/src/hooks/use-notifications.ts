@@ -64,6 +64,9 @@ export function useNotifications({ activeContraction, onAutoStop, onPermissionGr
         if (result === 'granted') onPermissionGrantedRef.current?.();
       });
     }
+    if (Notification.permission === 'granted') {
+      onPermissionGrantedRef.current?.();
+    }
     notifyServiceWorker('CONTRACTION_STARTED');
   }, [activeContraction]);
 

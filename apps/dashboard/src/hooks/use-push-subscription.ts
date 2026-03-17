@@ -1,4 +1,4 @@
-import { PUSH_SUBSCRIPTION_STORAGE_KEY, PushSubscriptionType } from '@contracking/shared';
+import { PUSH_SUBSCRIPTION_STORAGE_KEY, type PushSubscriptionType } from '@contracking/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { fetchVapidKey, subscribePush, unsubscribePush } from '../api';
 
@@ -25,6 +25,7 @@ export function usePushSubscription({ type, publicId, turnstileToken }: UsePushS
 
   const subscribe = useCallback(async () => {
     if (!('PushManager' in window)) return;
+    if (localStorage.getItem(PUSH_SUBSCRIPTION_STORAGE_KEY) === type) return;
 
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return;
