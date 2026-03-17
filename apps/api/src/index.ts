@@ -3,6 +3,7 @@ import { handleLogout, handleMagicLink, handleMe, handleVerify, handleVerifyOtp 
 import { handleCreateContraction, handleDeleteContraction, handleUpdateContraction } from './routes/contractions';
 import { handleCreateEvent, handleDeleteEvent } from './routes/events';
 import { handleGetPublicSession, handlePollPublicSession } from './routes/public';
+import { handleGetVapidKey, handleSubscribe, handleUnsubscribe } from './routes/push';
 import {
   handleCreateSession,
   handleDeleteSession,
@@ -87,6 +88,12 @@ export default {
     } else if (PUBLIC_ID_PATTERN.test(pathname) && method === 'GET') {
       const publicId = PUBLIC_ID_PATTERN.exec(pathname)![1];
       response = await handleGetPublicSession({ request, env, publicId });
+    } else if (pathname === '/push/vapid-key' && method === 'GET') {
+      response = await handleGetVapidKey({ request, env });
+    } else if (pathname === '/push/subscribe' && method === 'POST') {
+      response = await handleSubscribe({ request, env });
+    } else if (pathname === '/push/unsubscribe' && method === 'DELETE') {
+      response = await handleUnsubscribe({ request, env });
     } else {
       response = jsonResponse({ message: 'not found' }, 404);
     }
