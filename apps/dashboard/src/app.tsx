@@ -1,3 +1,4 @@
+import './styles.css';
 import { AUTH_TOKEN_STORAGE_KEY } from '@contracking/shared';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
