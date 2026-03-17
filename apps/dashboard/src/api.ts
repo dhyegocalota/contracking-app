@@ -4,6 +4,7 @@ import type {
   Intensity,
   PollResponse,
   Position,
+  PushSubscriptionType,
   SessionResponse,
   TrackingSession,
   User,
@@ -231,4 +232,41 @@ export async function pollPublicSession(publicId: string, after: string): Promis
   const response = await fetch(`${API_BASE_URL}/public/${publicId}/poll?after=${after}`);
   await assertSuccessful(response);
   return response.json();
+}
+
+export async function fetchVapidKey(): Promise<{ publicKey: string }> {
+  const response = await fetch(`${API_BASE_URL}/push/vapid-key`);
+  await assertSuccessful(response);
+  return response.json();
+}
+
+export async function subscribePush({
+  endpoint,
+  keys,
+  type,
+  publicId,
+  turnstileToken,
+}: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  type: PushSubscriptionType;
+  publicId?: string;
+  turnstileToken?: string;
+}): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/push/subscribe`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ endpoint, keys, type, publicId, turnstileToken }),
+  });
+  await assertSuccessful(response);
+}
+
+export async function unsubscribePush({ endpoint, authKey }: { endpoint: string; authKey: string }): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/push/unsubscribe`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint, authKey }),
+  });
+  await assertSuccessful(response);
 }
