@@ -1,4 +1,5 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import tailwindcss from 'bun-plugin-tailwind';
 
 const gitHash = Bun.spawnSync(['git', 'rev-parse', '--short', 'HEAD']).stdout.toString().trim();
 const buildVersion = gitHash || new Date().toISOString();
@@ -16,6 +17,9 @@ await Bun.build({
   minify: true,
   env: 'inline',
   publicPath: '/',
+  target: 'browser',
+  format: 'esm',
+  plugins: [tailwindcss],
   define: {
     'process.env.BUILD_VERSION': JSON.stringify(buildVersion),
     'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
