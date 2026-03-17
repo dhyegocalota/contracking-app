@@ -1,10 +1,11 @@
 import type { Contraction, Event, SessionStats, TrackingSession } from '@contracking/shared';
-import { DateRange, EventType, POLLING_INTERVAL_MILLISECONDS } from '@contracking/shared';
+import { DateRange, EventType, POLLING_INTERVAL_MILLISECONDS, PushSubscriptionType } from '@contracking/shared';
 import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle, Calendar, Clock, Droplets, Globe, MessageSquare, Ruler, User, Utensils } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { fetchPublicSession, pollPublicSession } from '../api';
 import { usePolling } from '../hooks/use-polling';
+import { usePushSubscription } from '../hooks/use-push-subscription';
 import { filterByDateRange } from '../utils/filter-by-date';
 import { DateRangeFilter } from './date-range-filter';
 import { PublicChart } from './public-chart';
@@ -145,6 +146,10 @@ export function PublicPage() {
   const [customFrom, setCustomFrom] = useState<string | null>(null);
   const [customTo, setCustomTo] = useState<string | null>(null);
   const publicId = getPublicIdFromPath();
+  const { isSubscribed, isSupported, subscribe, unsubscribe } = usePushSubscription({
+    type: PushSubscriptionType.COMPANION,
+    publicId,
+  });
 
   const handleDateRangeChange = (range: DateRange, from?: string, to?: string) => {
     setDateRange(range);
@@ -244,6 +249,19 @@ export function PublicPage() {
               />
               <span style={{ fontSize: 10, color: 'var(--accent)' }}>AO VIVO</span>
             </div>
+            {isSupported && (
+              <button
+                onClick={isSubscribed ? unsubscribe : subscribe}
+                className="text-xs px-3 py-1.5 rounded-lg font-medium"
+                style={{
+                  background: isSubscribed ? 'var(--card-bg)' : 'var(--accent)',
+                  color: isSubscribed ? 'var(--text-secondary)' : 'white',
+                  border: isSubscribed ? '1px solid var(--card-border)' : 'none',
+                }}
+              >
+                {isSubscribed ? 'Notificações ativas' : 'Ativar notificações'}
+              </button>
+            )}
           </div>
           <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sessão compartilhada · atualiza em tempo real</p>
         </div>
