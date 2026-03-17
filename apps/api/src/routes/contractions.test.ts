@@ -142,6 +142,17 @@ describe('handleUpdateContraction', () => {
     const body = await response.json<{ id: string }>();
     expect(body.id).toBeDefined();
   });
+
+  test('returns 200 when updating startedAt', async () => {
+    const newStartedAt = '2024-06-15T14:30:00.000Z';
+    const request = makeRequest('PATCH', 'http://localhost/contractions/contraction-1', { startedAt: newStartedAt });
+    const response = await handleUpdateContraction({
+      request,
+      env: makeEnvironment() as never,
+      contractionId: 'contraction-1',
+    });
+    expect(response.status).toBe(200);
+  });
 });
 
 describe('handleDeleteContraction', () => {

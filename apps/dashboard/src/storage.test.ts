@@ -212,6 +212,49 @@ describe('updateLocalContraction', () => {
     expect(updated.contractions[0]!.syncedAt).toBeNull();
     expect(updated.contractions[0]!.updatedAt).not.toBe('2024-01-01T10:00:00.000Z');
   });
+
+  test('updates startedAt and resets syncedAt', () => {
+    createLocalSession();
+    addLocalContraction({
+      id: 'c1',
+      startedAt: '2024-01-01T10:00:00.000Z',
+      endedAt: '2024-01-01T10:01:00.000Z',
+      intensity: null,
+      position: null,
+      notes: null,
+      syncedAt: '2024-01-01T10:02:00.000Z',
+      updatedAt: '2024-01-01T10:00:00.000Z',
+    });
+    updateLocalContraction({
+      id: 'c1',
+      data: { startedAt: '2024-01-01T09:55:00.000Z' },
+    });
+    const updated = getLocalSession()!;
+    expect(updated.contractions[0]!.startedAt).toBe('2024-01-01T09:55:00.000Z');
+    expect(updated.contractions[0]!.syncedAt).toBeNull();
+  });
+
+  test('updates both startedAt and endedAt together', () => {
+    createLocalSession();
+    addLocalContraction({
+      id: 'c1',
+      startedAt: '2024-01-01T10:00:00.000Z',
+      endedAt: '2024-01-01T10:01:00.000Z',
+      intensity: null,
+      position: null,
+      notes: null,
+      syncedAt: '2024-01-01T10:02:00.000Z',
+      updatedAt: '2024-01-01T10:00:00.000Z',
+    });
+    updateLocalContraction({
+      id: 'c1',
+      data: { startedAt: '2024-01-01T09:50:00.000Z', endedAt: '2024-01-01T09:51:00.000Z' },
+    });
+    const updated = getLocalSession()!;
+    expect(updated.contractions[0]!.startedAt).toBe('2024-01-01T09:50:00.000Z');
+    expect(updated.contractions[0]!.endedAt).toBe('2024-01-01T09:51:00.000Z');
+    expect(updated.contractions[0]!.syncedAt).toBeNull();
+  });
 });
 
 describe('deleteLocalContraction', () => {

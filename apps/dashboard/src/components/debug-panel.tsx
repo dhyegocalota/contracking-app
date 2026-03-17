@@ -35,7 +35,11 @@ async function getPushSubscriptionInfo(): Promise<{
 export function DebugPanel({ syncStatus, userEmail, publicId }: DebugPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [pushInfo, setPushInfo] = useState<{ permission: string; localStorageType: string | null; endpoint: string | null } | null>(null);
+  const [pushInfo, setPushInfo] = useState<{
+    permission: string;
+    localStorageType: string | null;
+    endpoint: string | null;
+  } | null>(null);
   const session = getLocalSession();
   const buildVersion = getBuildVersion();
   const buildTimestamp = getBuildTimestamp();

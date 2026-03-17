@@ -96,13 +96,13 @@ self.addEventListener('message', (event) => {
     for (const id of contractionTimeouts) clearTimeout(id);
     contractionTimeouts = [];
     self.registration.getNotifications().then((notifications) => {
-      notifications.forEach((notification) => notification.close());
+      for (const notification of notifications) notification.close();
     });
     return;
   }
   if (event.data?.type === 'CLEAR_NOTIFICATIONS') {
     self.registration.getNotifications().then((notifications) => {
-      notifications.forEach((notification) => notification.close());
+      for (const notification of notifications) notification.close();
     });
     return;
   }

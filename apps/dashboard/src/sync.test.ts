@@ -563,6 +563,36 @@ describe('mergeWithCloud', () => {
     expect(merged.contractions[0]!.notes).toBe('device A data');
   });
 
+  test('edited startedAt preserved when local unsynced wins over cloud', () => {
+    const local = makeLocalSession({
+      contractions: [
+        makeLocalContraction({
+          id: 'c1',
+          startedAt: '2024-01-01T09:50:00.000Z',
+          endedAt: '2024-01-01T10:01:00.000Z',
+          syncedAt: null,
+          updatedAt: '2024-01-01T10:05:00.000Z',
+        }),
+      ],
+    });
+    const cloud = makeCloudResponse({
+      contractions: [
+        {
+          id: 'c1',
+          userId: 'user-1',
+          startedAt: new Date('2024-01-01T10:00:00Z'),
+          endedAt: new Date('2024-01-01T10:01:00Z'),
+          intensity: null,
+          position: null,
+          notes: null,
+        },
+      ],
+    });
+    const merged = mergeWithCloud(local, cloud);
+    expect(merged.contractions).toHaveLength(1);
+    expect(merged.contractions[0]!.startedAt).toBe('2024-01-01T09:50:00.000Z');
+  });
+
   test('session metadata preserved during merge', () => {
     const local = makeLocalSession({
       patientName: 'Maria',

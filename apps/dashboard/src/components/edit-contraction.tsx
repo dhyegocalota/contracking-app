@@ -3,20 +3,93 @@ import { useState } from 'react';
 import { IntensityChips } from './intensity-chips';
 import { PositionChips } from './position-chips';
 
+type EditContractionData = {
+  startedAt: string;
+  endedAt: string | null;
+  intensity: Intensity | null;
+  position: Position | null;
+  notes: string;
+};
+
 type EditContractionProps = {
   contraction: Contraction;
-  onSave: (data: { intensity: Intensity | null; position: Position | null; notes: string }) => void;
+  onSave: (data: EditContractionData) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
 };
 
-function formatDateTime(date: Date | string | null): string {
-  if (!date) return '—';
+function toTimeValue(date: Date | string | null): string {
+  if (!date) return '';
   const d = new Date(date);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+function toDateValue(date: Date | string | null): string {
+  if (!date) return '';
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function combineDateAndTime({ date, time }: { date: string; time: string }): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  const combined = new Date(year!, month! - 1, day!, hours, minutes);
+  return combined.toISOString();
+}
+
+const INPUT_STYLE = {
+  background: 'transparent',
+  border: 'none',
+  outline: 'none',
+  padding: 0,
+  fontVariantNumeric: 'tabular-nums' as const,
+  fontFamily: 'inherit',
+};
+
+function TimeField({
+  label,
+  time,
+  date,
+  onTimeChange,
+  onDateChange,
+}: {
+  label: string;
+  time: string;
+  date: string;
+  onTimeChange: (value: string) => void;
+  onDateChange: (value: string) => void;
+}) {
+  return (
+    <div
+      className="flex-1 flex flex-col gap-1 p-3 rounded-[10px]"
+      style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+    >
+      <span className="uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+        {label}
+      </span>
+      <input
+        type="time"
+        value={time}
+        onChange={(event) => onTimeChange(event.target.value)}
+        className="w-full"
+        style={{ ...INPUT_STYLE, fontSize: 22, color: 'var(--text-primary)', fontWeight: 600 }}
+      />
+      <input
+        type="date"
+        value={date}
+        onChange={(event) => onDateChange(event.target.value)}
+        className="w-full"
+        style={{ ...INPUT_STYLE, fontSize: 11, color: 'var(--text-faint)' }}
+      />
+    </div>
+  );
+}
+
 export function EditContraction({ contraction, onSave, onDelete, onClose: _ }: EditContractionProps) {
+  const [startTime, setStartTime] = useState(toTimeValue(contraction.startedAt));
+  const [startDate, setStartDate] = useState(toDateValue(contraction.startedAt));
+  const [endTime, setEndTime] = useState(toTimeValue(contraction.endedAt));
+  const [endDate, setEndDate] = useState(toDateValue(contraction.endedAt));
   const [intensity, setIntensity] = useState<Intensity | null>(contraction.intensity);
   const [position, setPosition] = useState<Position | null>(contraction.position);
   const [notes, setNotes] = useState(contraction.notes ?? '');
@@ -29,25 +102,27 @@ export function EditContraction({ contraction, onSave, onDelete, onClose: _ }: E
     setPosition(position === value ? null : value);
   };
 
+  const hasEnd = endTime !== '' && endDate !== '';
+
+  const handleSave = () => {
+    const startedAt = combineDateAndTime({ date: startDate, time: startTime });
+    const endedAt = hasEnd ? combineDateAndTime({ date: endDate, time: endTime }) : null;
+    onSave({ startedAt, endedAt, intensity, position, notes });
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-4">
-        <div className="flex flex-col gap-0.5">
-          <span className="uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-            Início
-          </span>
-          <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
-            {formatDateTime(contraction.startedAt)}
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-            Fim
-          </span>
-          <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
-            {formatDateTime(contraction.endedAt)}
-          </span>
-        </div>
+      <div className="flex gap-3">
+        <TimeField
+          label="Início"
+          time={startTime}
+          date={startDate}
+          onTimeChange={setStartTime}
+          onDateChange={setStartDate}
+        />
+        {contraction.endedAt && (
+          <TimeField label="Fim" time={endTime} date={endDate} onTimeChange={setEndTime} onDateChange={setEndDate} />
+        )}
       </div>
       <div className="flex flex-col gap-2">
         <span className="uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
@@ -80,7 +155,7 @@ export function EditContraction({ contraction, onSave, onDelete, onClose: _ }: E
       </div>
       <button
         type="button"
-        onClick={() => onSave({ intensity, position, notes })}
+        onClick={handleSave}
         className="w-full py-2.5 rounded-[10px] text-sm font-semibold text-white"
         style={{ background: 'var(--accent)' }}
       >

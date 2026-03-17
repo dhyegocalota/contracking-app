@@ -51,12 +51,12 @@ export const SELECT_CONTRACTIONS_AFTER_TIMESTAMP =
 export const INSERT_CONTRACTION = 'INSERT INTO contractions (id, user_id, started_at) VALUES (?, ?, ?)';
 
 export const UPDATE_CONTRACTION =
-  'UPDATE contractions SET ended_at = ?, intensity = ?, position = ?, notes = ? WHERE id = ?';
+  'UPDATE contractions SET started_at = ?, ended_at = ?, intensity = ?, position = ?, notes = ? WHERE id = ?';
 
 export const DELETE_CONTRACTION = 'DELETE FROM contractions WHERE id = ?';
 
 export const UPSERT_CONTRACTION =
-  'INSERT INTO contractions (id, user_id, started_at, ended_at, intensity, position, notes) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, ended_at = excluded.ended_at, intensity = excluded.intensity, position = excluded.position, notes = excluded.notes';
+  'INSERT INTO contractions (id, user_id, started_at, ended_at, intensity, position, notes) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, started_at = excluded.started_at, ended_at = excluded.ended_at, intensity = excluded.intensity, position = excluded.position, notes = excluded.notes';
 
 export const SELECT_EVENT = 'SELECT * FROM events WHERE id = ?';
 

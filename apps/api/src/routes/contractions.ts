@@ -30,10 +30,17 @@ export async function handleUpdateContraction({ request, env, contractionId }: H
   const isNotOwner = contractionRow.user_id !== user.id;
   if (isNotOwner) return jsonResponse({ error: 'not found' }, 404);
 
-  const body = await request.json<{ endedAt?: string; intensity?: string; position?: string; notes?: string }>();
+  const body = await request.json<{
+    startedAt?: string;
+    endedAt?: string;
+    intensity?: string;
+    position?: string;
+    notes?: string;
+  }>();
 
   await env.DATABASE.prepare(UPDATE_CONTRACTION)
     .bind(
+      body.startedAt ?? contractionRow.started_at,
       body.endedAt ?? contractionRow.ended_at,
       body.intensity ?? contractionRow.intensity,
       body.position ?? contractionRow.position,

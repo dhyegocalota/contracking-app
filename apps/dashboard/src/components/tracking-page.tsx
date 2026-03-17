@@ -177,11 +177,19 @@ export function TrackingPage() {
     updateContraction({ id: activeContraction.id, data: { position: nextPosition ?? undefined } });
   };
 
-  const handleEditSave = (data: { intensity: Intensity | null; position: Position | null; notes: string }) => {
+  const handleEditSave = (data: {
+    startedAt: string;
+    endedAt: string | null;
+    intensity: Intensity | null;
+    position: Position | null;
+    notes: string;
+  }) => {
     if (!editingContraction) return;
     updateContraction({
       id: editingContraction.id,
       data: {
+        startedAt: data.startedAt,
+        endedAt: data.endedAt ?? undefined,
         intensity: data.intensity ?? undefined,
         position: data.position ?? undefined,
         notes: data.notes || undefined,
