@@ -251,6 +251,7 @@ export function PublicPage() {
             </div>
             {isSupported && (
               <button
+                type="button"
                 onClick={isSubscribed ? unsubscribe : subscribe}
                 className="text-xs px-3 py-1.5 rounded-lg font-medium"
                 style={{
