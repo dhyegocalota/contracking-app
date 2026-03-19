@@ -89,78 +89,6 @@ export function useLocalSession() {
     if (stored) setLocalSession(stored);
   }, []);
 
-  const handleStartContraction = useCallback(() => {
-    const now = new Date().toISOString();
-    const contraction = {
-      id: crypto.randomUUID(),
-      startedAt: now,
-      endedAt: null,
-      intensity: null,
-      position: null,
-      notes: null,
-      syncedAt: null,
-      updatedAt: now,
-    };
-    addLocalContraction(contraction);
-    refreshFromStorage();
-    return contraction.id;
-  }, [refreshFromStorage]);
-
-  const handleStopContraction = useCallback(
-    (id: string) => {
-      updateLocalContraction({ id, data: { endedAt: new Date().toISOString(), syncedAt: null } });
-      refreshFromStorage();
-    },
-    [refreshFromStorage],
-  );
-
-  const handleUpdateContraction = useCallback(
-    ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: { startedAt?: string; endedAt?: string; intensity?: Intensity; position?: Position; notes?: string };
-    }) => {
-      updateLocalContraction({ id, data: { ...data, syncedAt: null } });
-      refreshFromStorage();
-    },
-    [refreshFromStorage],
-  );
-
-  const handleDeleteContraction = useCallback(
-    (id: string) => {
-      deleteLocalContraction(id);
-      refreshFromStorage();
-    },
-    [refreshFromStorage],
-  );
-
-  const handleCreateEvent = useCallback(
-    ({ type, value }: { type: EventType; value?: string }) => {
-      const now = new Date().toISOString();
-      const event = {
-        id: crypto.randomUUID(),
-        type,
-        value: value ?? null,
-        occurredAt: now,
-        syncedAt: null,
-        updatedAt: now,
-      };
-      addLocalEvent(event);
-      refreshFromStorage();
-    },
-    [refreshFromStorage],
-  );
-
-  const handleDeleteEvent = useCallback(
-    (id: string) => {
-      deleteLocalEvent(id);
-      refreshFromStorage();
-    },
-    [refreshFromStorage],
-  );
-
   const handleSync = useCallback(async () => {
     if (syncingRef.current) return null;
     if (!navigator.onLine) {
@@ -223,6 +151,81 @@ export function useLocalSession() {
       syncingRef.current = false;
     }
   }, [refreshFromStorage]);
+
+  const handleStartContraction = useCallback(() => {
+    const now = new Date().toISOString();
+    const contraction = {
+      id: crypto.randomUUID(),
+      startedAt: now,
+      endedAt: null,
+      intensity: null,
+      position: null,
+      notes: null,
+      syncedAt: null,
+      updatedAt: now,
+    };
+    addLocalContraction(contraction);
+    refreshFromStorage();
+    return contraction.id;
+  }, [refreshFromStorage]);
+
+  const handleStopContraction = useCallback(
+    (id: string) => {
+      updateLocalContraction({ id, data: { endedAt: new Date().toISOString(), syncedAt: null } });
+      refreshFromStorage();
+    },
+    [refreshFromStorage],
+  );
+
+  const handleUpdateContraction = useCallback(
+    ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { startedAt?: string; endedAt?: string; intensity?: Intensity; position?: Position; notes?: string };
+    }) => {
+      updateLocalContraction({ id, data: { ...data, syncedAt: null } });
+      refreshFromStorage();
+      handleSync();
+    },
+    [refreshFromStorage, handleSync],
+  );
+
+  const handleDeleteContraction = useCallback(
+    (id: string) => {
+      deleteLocalContraction(id);
+      refreshFromStorage();
+      handleSync();
+    },
+    [refreshFromStorage, handleSync],
+  );
+
+  const handleCreateEvent = useCallback(
+    ({ type, value }: { type: EventType; value?: string }) => {
+      const now = new Date().toISOString();
+      const event = {
+        id: crypto.randomUUID(),
+        type,
+        value: value ?? null,
+        occurredAt: now,
+        syncedAt: null,
+        updatedAt: now,
+      };
+      addLocalEvent(event);
+      refreshFromStorage();
+    },
+    [refreshFromStorage],
+  );
+
+  const handleDeleteEvent = useCallback(
+    (id: string) => {
+      deleteLocalEvent(id);
+      refreshFromStorage();
+      handleSync();
+    },
+    [refreshFromStorage, handleSync],
+  );
 
   const handleLogout = useCallback(async () => {
     try {
@@ -306,9 +309,7 @@ export function useLocalSession() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') handleSync();
-    };
+    const handleVisibilityChange = () => handleSync();
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
