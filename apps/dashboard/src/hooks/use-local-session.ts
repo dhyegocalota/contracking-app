@@ -173,8 +173,9 @@ export function useLocalSession() {
     (id: string) => {
       updateLocalContraction({ id, data: { endedAt: new Date().toISOString(), syncedAt: null } });
       refreshFromStorage();
+      handleSync();
     },
-    [refreshFromStorage],
+    [refreshFromStorage, handleSync],
   );
 
   const handleUpdateContraction = useCallback(
