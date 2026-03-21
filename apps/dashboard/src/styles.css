@@ -7,6 +7,8 @@
   --color-accent-dark: #b83a5e;
   --color-accent-light: #f06292;
   --color-accent-glow: rgba(185, 58, 94, 0.25);
+  --color-stop: #e53e3e;
+  --color-stop-dark: #c53030;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -90,10 +92,10 @@ select {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 60px rgba(185, 58, 94, 0.25);
+    box-shadow: 0 0 60px var(--pulse-color, rgba(185, 58, 94, 0.25));
   }
   50% {
-    box-shadow: 0 0 80px rgba(185, 58, 94, 0.4);
+    box-shadow: 0 0 80px var(--pulse-color-intense, rgba(185, 58, 94, 0.4));
   }
 }
 

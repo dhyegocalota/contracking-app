@@ -9,9 +9,12 @@ type MainButtonProps = {
 };
 
 const IDLE_GLOW = '0 0 60px rgba(185,58,94,0.25)';
-const ACTIVE_GLOW = '0 0 80px rgba(185,58,94,0.35), 0 0 120px rgba(185,58,94,0.15)';
-const WARNING_GLOW = '0 0 80px rgba(255,167,38,0.35), 0 0 120px rgba(255,167,38,0.15)';
-const DANGER_GLOW = '0 0 80px rgba(239,68,68,0.35), 0 0 120px rgba(239,68,68,0.15)';
+const ACTIVE_PULSE_COLOR = 'rgba(239,68,68,0.25)';
+const ACTIVE_PULSE_COLOR_INTENSE = 'rgba(239,68,68,0.4)';
+const WARNING_PULSE_COLOR = 'rgba(255,167,38,0.25)';
+const WARNING_PULSE_COLOR_INTENSE = 'rgba(255,167,38,0.4)';
+const DANGER_PULSE_COLOR = 'rgba(239,68,68,0.25)';
+const DANGER_PULSE_COLOR_INTENSE = 'rgba(239,68,68,0.4)';
 
 function formatTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -24,11 +27,14 @@ function formatLastContraction(lastContractionAt: Date | null): string {
   return `Última contração há ${formatRelativeTime(lastContractionAt)}`;
 }
 
-function resolveGlow({ isActive, elapsedSeconds }: { isActive: boolean; elapsedSeconds: number }): string {
-  if (!isActive) return IDLE_GLOW;
-  if (elapsedSeconds > CONTRACTION_WARNING_SECONDS) return DANGER_GLOW;
-  if (elapsedSeconds > CONTRACTION_TIMEOUT_SECONDS) return WARNING_GLOW;
-  return ACTIVE_GLOW;
+type PulseColors = { pulseColor: string; pulseColorIntense: string };
+
+function resolvePulseColors({ elapsedSeconds }: { elapsedSeconds: number }): PulseColors {
+  if (elapsedSeconds > CONTRACTION_WARNING_SECONDS)
+    return { pulseColor: DANGER_PULSE_COLOR, pulseColorIntense: DANGER_PULSE_COLOR_INTENSE };
+  if (elapsedSeconds > CONTRACTION_TIMEOUT_SECONDS)
+    return { pulseColor: WARNING_PULSE_COLOR, pulseColorIntense: WARNING_PULSE_COLOR_INTENSE };
+  return { pulseColor: ACTIVE_PULSE_COLOR, pulseColorIntense: ACTIVE_PULSE_COLOR_INTENSE };
 }
 
 function resolveSubtitle({
@@ -47,19 +53,23 @@ function resolveSubtitle({
 }
 
 export function MainButton({ isActive, elapsedSeconds, lastContractionAt, onPress }: MainButtonProps) {
-  const glow = resolveGlow({ isActive, elapsedSeconds });
+  const pulseColors = isActive ? resolvePulseColors({ elapsedSeconds }) : null;
   const subtitle = resolveSubtitle({ isActive, elapsedSeconds, lastContractionAt });
 
   return (
     <button
       type="button"
       onClick={onPress}
-      className="flex flex-col items-center justify-center w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-dark to-accent"
-      style={{
-        boxShadow: glow,
-        transition: 'all 0.3s ease',
-        animation: isActive ? 'pulseGlow 2s ease-in-out infinite' : undefined,
-      }}
+      className={`flex flex-col items-center justify-center w-[140px] h-[140px] rounded-full bg-gradient-to-br ${isActive ? 'from-stop-dark to-stop' : 'from-accent-dark to-accent'}`}
+      style={
+        {
+          boxShadow: isActive ? undefined : IDLE_GLOW,
+          transition: 'all 0.3s ease',
+          animation: isActive ? 'pulseGlow 2s ease-in-out infinite' : undefined,
+          '--pulse-color': pulseColors?.pulseColor,
+          '--pulse-color-intense': pulseColors?.pulseColorIntense,
+        } as React.CSSProperties
+      }
     >
       <span
         className="text-2xl font-semibold text-white"
