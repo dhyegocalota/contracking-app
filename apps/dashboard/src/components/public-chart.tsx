@@ -24,6 +24,13 @@ const CHART_HEIGHT = 120;
 const Y_AXIS_WIDTH = 30;
 const GRID_LINE_Y_POSITIONS = [30, 60, 90];
 const DOT_RADIUS = 3;
+const MAX_X_LABELS = 5;
+
+function selectEvenlySpaced<T>(items: T[], maxCount: number): T[] {
+  if (items.length <= maxCount) return items;
+  const step = (items.length - 1) / (maxCount - 1);
+  return Array.from({ length: maxCount }, (_, index) => items[Math.round(index * step)]);
+}
 
 type DataPoint = {
   value: number;
@@ -47,11 +54,11 @@ const INTERVAL_Y_AXIS: YAxisConfig = {
 };
 
 const DURATION_Y_AXIS: YAxisConfig = {
-  unit: 'seg',
+  unit: 'min',
   labels: [
-    { value: '90', y: 10 },
-    { value: '60', y: 42 },
-    { value: '30', y: 74 },
+    { value: '1.5', y: 10 },
+    { value: '1.0', y: 42 },
+    { value: '0.5', y: 74 },
     { value: '0', y: 118 },
   ],
 };
@@ -87,7 +94,7 @@ function buildDurationData(contractions: Contraction[]): DataPoint[] {
   return contractions
     .filter((contraction) => contraction.endedAt !== null)
     .map((contraction) => ({
-      value: (new Date(contraction.endedAt as string).getTime() - new Date(contraction.startedAt).getTime()) / 1000,
+      value: (new Date(contraction.endedAt as string).getTime() - new Date(contraction.startedAt).getTime()) / 60000,
       date: new Date(contraction.startedAt),
     }));
 }
@@ -168,6 +175,12 @@ export function PublicChart({ contractions }: PublicChartProps) {
           className="flex flex-col justify-between flex-shrink-0 relative"
           style={{ width: Y_AXIS_WIDTH, height: CHART_HEIGHT }}
         >
+          <span
+            className="absolute right-1"
+            style={{ fontSize: 7, color: 'var(--text-muted)', top: -2, transform: 'translateY(-100%)' }}
+          >
+            {yAxis.unit}
+          </span>
           {yAxis.labels.map((label) => (
             <span
               key={label.value}
@@ -215,14 +228,18 @@ export function PublicChart({ contractions }: PublicChartProps) {
               className="flex justify-between absolute bottom-0 left-0 right-0"
               style={{ transform: 'translateY(100%)' }}
             >
-              {data.slice(0, 5).map((point) => (
-                <span
-                  key={point.date.getTime()}
-                  style={{ fontSize: 8, color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}
-                >
-                  {formatChartTime({ date: point.date, includeDate })}
-                </span>
-              ))}
+              {selectEvenlySpaced(data, MAX_X_LABELS).map((point, index, labels) => {
+                const previousPoint = index > 0 ? labels[index - 1] : null;
+                const dayChanged = !previousPoint || getDayKey(point.date) !== getDayKey(previousPoint.date);
+                return (
+                  <span
+                    key={point.date.getTime()}
+                    style={{ fontSize: 8, color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatChartTime({ date: point.date, includeDate: dayChanged && includeDate })}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>

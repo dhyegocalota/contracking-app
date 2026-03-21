@@ -43,7 +43,7 @@ function buildDurationData(contractions: Contraction[]): DataPoint[] {
   return contractions
     .filter((c) => c.endedAt !== null)
     .map((c) => ({
-      value: (new Date(c.endedAt as string).getTime() - new Date(c.startedAt).getTime()) / 1000,
+      value: (new Date(c.endedAt as string).getTime() - new Date(c.startedAt).getTime()) / 60000,
       time: formatTime(c.startedAt),
     }));
 }
@@ -166,7 +166,7 @@ describe('buildDurationData', () => {
     expect(buildDurationData(contractions)).toEqual([]);
   });
 
-  test('computes duration in seconds', () => {
+  test('computes duration in minutes', () => {
     const contractions = [
       makeContraction({
         startedAt: new Date('2024-01-01T10:00:00Z'),
@@ -175,7 +175,7 @@ describe('buildDurationData', () => {
     ];
     const result = buildDurationData(contractions);
     expect(result).toHaveLength(1);
-    expect(result[0]!.value).toBe(90);
+    expect(result[0]!.value).toBe(1.5);
   });
 });
 
@@ -257,5 +257,42 @@ describe('buildPoints', () => {
     const points = buildPoints(data);
     expect(points).toHaveLength(2);
     expect(points[0]!.y).toBe(points[1]!.y);
+  });
+});
+
+function selectEvenlySpaced<T>(items: T[], maxCount: number): T[] {
+  if (items.length <= maxCount) return items;
+  const step = (items.length - 1) / (maxCount - 1);
+  return Array.from({ length: maxCount }, (_, index) => items[Math.round(index * step)]);
+}
+
+describe('selectEvenlySpaced', () => {
+  test('returns all items when count is less than or equal to max', () => {
+    const items = [1, 2, 3];
+    expect(selectEvenlySpaced(items, 5)).toEqual([1, 2, 3]);
+  });
+
+  test('returns all items when count equals max', () => {
+    const items = [1, 2, 3, 4, 5];
+    expect(selectEvenlySpaced(items, 5)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  test('selects first and last items', () => {
+    const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const result = selectEvenlySpaced(items, 3);
+    expect(result[0]).toBe(1);
+    expect(result[result.length - 1]).toBe(10);
+  });
+
+  test('selects evenly distributed items', () => {
+    const items = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const result = selectEvenlySpaced(items, 5);
+    expect(result).toEqual([10, 30, 60, 80, 100]);
+  });
+
+  test('returns correct count', () => {
+    const items = Array.from({ length: 20 }, (_, i) => i);
+    const result = selectEvenlySpaced(items, 5);
+    expect(result).toHaveLength(5);
   });
 });

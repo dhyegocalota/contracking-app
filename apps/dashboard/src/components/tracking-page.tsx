@@ -81,6 +81,7 @@ export function TrackingPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
+  const [feedbackRipple, setFeedbackRipple] = useState<'start' | 'stop' | null>(null);
   const [timelineDateRange, setTimelineDateRange] = useState<DateRange>(DateRange.TODAY);
   const [timelineCustomFrom, setTimelineCustomFrom] = useState<string | null>(null);
   const [timelineCustomTo, setTimelineCustomTo] = useState<string | null>(null);
@@ -138,8 +139,17 @@ export function TrackingPage() {
 
   const isVisuallyActive = activeContraction !== null && !isStopping;
 
+  const triggerFeedback = (type: 'start' | 'stop') => {
+    setFeedbackRipple(type);
+    setTimeout(() => setFeedbackRipple(null), 500);
+    if ('vibrate' in navigator) {
+      navigator.vibrate(type === 'start' ? 80 : [40, 30, 40]);
+    }
+  };
+
   const handleButtonPress = () => {
     if (activeContraction) {
+      triggerFeedback('stop');
       setIsStopping(true);
       timer.stop();
       stopContraction(activeContraction.id);
@@ -152,6 +162,7 @@ export function TrackingPage() {
       return;
     }
 
+    triggerFeedback('start');
     const nextIntensity = intensity ?? (preferences.repeatLastIntensity ? preferences.lastIntensity : null);
     const nextPosition = position ?? (preferences.repeatLastPosition ? preferences.lastPosition : null);
     const contractionId = startContraction();
@@ -271,13 +282,27 @@ export function TrackingPage() {
 
         {activeTab === 'tracking' && (
           <div className="flex flex-col" style={{ animation: 'fadeIn 0.2s ease' }}>
-            <div className="flex justify-center py-6">
+            <div className="flex justify-center py-6 relative">
               <MainButton
                 isActive={isVisuallyActive}
                 elapsedSeconds={timer.elapsedSeconds}
                 lastContractionAt={lastContractionAt}
                 onPress={handleButtonPress}
               />
+              {feedbackRipple && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    key={Date.now()}
+                    style={{
+                      width: 140,
+                      height: 140,
+                      borderRadius: '50%',
+                      border: `2px solid ${feedbackRipple === 'start' ? 'var(--accent)' : 'var(--text-secondary)'}`,
+                      animation: 'pressRipple 0.5s ease-out forwards',
+                    }}
+                  />
+                </div>
+              )}
             </div>
             <div className="flex justify-center py-1.5">
               <IntensityChips value={intensity} onChange={handleIntensityChange} />
