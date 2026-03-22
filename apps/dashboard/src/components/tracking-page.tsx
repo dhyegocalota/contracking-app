@@ -1,5 +1,6 @@
 import type { Contraction } from '@contracking/shared';
 import {
+  calculateRegularity,
   DateRange,
   EventType,
   type Intensity,
@@ -33,15 +34,6 @@ import { ShareModal } from './share-modal';
 import { StatusBanners } from './status-banners';
 import { Timeline } from './timeline';
 
-const EMPTY_STATS = {
-  totalContractions: 0,
-  averageDuration: 0,
-  averageInterval: 0,
-  regularity: null as null,
-  alertFiveOneOne: false,
-  lastDilation: null,
-};
-
 type ActiveTab = 'tracking' | 'metrics';
 
 const EVENT_TITLE: Record<EventType, string> = {
@@ -56,7 +48,6 @@ export function TrackingPage() {
     session,
     contractions,
     events,
-    stats,
     syncStatus,
     publicId,
     userEmail,
@@ -297,7 +288,6 @@ export function TrackingPage() {
             <MetricsPage
               contractions={contractions}
               events={events}
-              stats={stats ?? EMPTY_STATS}
               onDeleteEvent={deleteEvent}
               onImportComplete={refreshFromStorage}
             />
@@ -397,7 +387,7 @@ export function TrackingPage() {
               <Timeline
                 contractions={filteredTimelineContractions}
                 allContractions={contractions}
-                regularity={stats?.regularity ?? null}
+                regularity={calculateRegularity(filteredTimelineContractions)}
                 newestContractionId={newestContractionId}
                 onEdit={setEditingContraction}
                 onDelete={deleteContraction}

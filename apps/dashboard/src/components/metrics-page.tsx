@@ -1,5 +1,5 @@
-import type { Contraction, Event, SessionStats } from '@contracking/shared';
-import { DateRange } from '@contracking/shared';
+import type { Contraction, Event } from '@contracking/shared';
+import { calculateSessionStats, DateRange } from '@contracking/shared';
 import { AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { filterByDateRange } from '../utils/filter-by-date';
@@ -81,12 +81,11 @@ function MetricsEmptyStateBanner({ contractions, onDateRangeChange }: MetricsEmp
 type MetricsPageProps = {
   contractions: Contraction[];
   events: Event[];
-  stats: SessionStats;
   onDeleteEvent: (id: string) => void;
   onImportComplete: () => void;
 };
 
-export function MetricsPage({ contractions, events, stats, onDeleteEvent, onImportComplete }: MetricsPageProps) {
+export function MetricsPage({ contractions, events, onDeleteEvent, onImportComplete }: MetricsPageProps) {
   const [dateRange, setDateRange] = useState<DateRange>(DateRange.TODAY);
   const [customFrom, setCustomFrom] = useState<string | null>(null);
   const [customTo, setCustomTo] = useState<string | null>(null);
@@ -114,6 +113,7 @@ export function MetricsPage({ contractions, events, stats, onDeleteEvent, onImpo
 
   const filteredContractions = filterByDateRange({ items: contractions, range: dateRange, customFrom, customTo });
   const filteredEvents = filterByDateRange({ items: events, range: dateRange, customFrom, customTo });
+  const stats = calculateSessionStats({ contractions: filteredContractions, events: filteredEvents });
   const regularityStyle = stats.regularity ? REGULARITY_STYLE[stats.regularity] : null;
 
   return (
