@@ -10,10 +10,9 @@ type FiveOneOneProgressProps = {
   contractions: Contraction[];
 };
 
-const MET_COLOR = 'rgba(76,175,80,0.8)';
-const UNMET_COLOR = 'var(--text-faint)';
-const MET_BACKGROUND = 'rgba(76,175,80,0.08)';
-const UNMET_BACKGROUND = 'var(--card-bg)';
+const MET_COLOR = 'var(--accent)';
+const MET_BACKGROUND = 'rgba(217,77,115,0.08)';
+const MET_BORDER = 'rgba(217,77,115,0.15)';
 
 function computeProgress(contractions: Contraction[]): {
   intervalMinutes: number | null;
@@ -70,8 +69,8 @@ function Criterion({ label, value, met }: CriterionProps) {
     <div
       className="flex flex-col items-center gap-0.5 flex-1 rounded-lg py-1.5"
       style={{
-        background: met ? MET_BACKGROUND : UNMET_BACKGROUND,
-        border: `1px solid ${met ? 'rgba(76,175,80,0.15)' : 'var(--card-border)'}`,
+        background: met ? MET_BACKGROUND : 'var(--card-bg)',
+        border: `1px solid ${met ? MET_BORDER : 'var(--card-border)'}`,
       }}
     >
       <span
@@ -85,7 +84,12 @@ function Criterion({ label, value, met }: CriterionProps) {
         {value}
       </span>
       <span
-        style={{ fontSize: 8, color: met ? MET_COLOR : UNMET_COLOR, textTransform: 'uppercase', letterSpacing: 0.5 }}
+        style={{
+          fontSize: 8,
+          color: met ? MET_COLOR : 'var(--text-faint)',
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+        }}
       >
         {label}
       </span>
@@ -121,17 +125,17 @@ export function FiveOneOneProgress({ contractions }: FiveOneOneProgressProps) {
       </div>
       <div className="flex gap-2">
         <Criterion
-          label={`Intervalo (${FIVE_ONE_ONE_INTERVAL_THRESHOLD_SECONDS / 60}min)`}
+          label={`Intervalo (\u2264${FIVE_ONE_ONE_INTERVAL_THRESHOLD_SECONDS / 60}min)`}
           value={`${progress.intervalMinutes}min`}
           met={progress.intervalMet}
         />
         <Criterion
-          label={`Duração (${FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS}s)`}
+          label={`Duração (\u2265${FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS}s)`}
           value={`${progress.durationSeconds}s`}
           met={progress.durationMet}
         />
         <Criterion
-          label={`Janela (${FIVE_ONE_ONE_WINDOW_SECONDS / 3600}h)`}
+          label={`Janela (\u2265${FIVE_ONE_ONE_WINDOW_SECONDS / 3600}h)`}
           value={`${progress.windowMinutes}min`}
           met={progress.windowMet}
         />

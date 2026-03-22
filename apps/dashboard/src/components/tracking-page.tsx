@@ -368,7 +368,7 @@ export function TrackingPage() {
                 <EventsList events={events} onDelete={deleteEvent} />
               </div>
             )}
-            <FiveOneOneProgress contractions={contractions} />
+            <FiveOneOneProgress contractions={filteredTimelineContractions} />
             <div style={{ height: 1, background: 'var(--divider)', margin: '8px 16px' }} />
             <div className="px-4 pb-2">
               <DateRangeFilter
