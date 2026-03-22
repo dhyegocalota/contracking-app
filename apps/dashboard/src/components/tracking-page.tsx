@@ -91,8 +91,23 @@ export function TrackingPage() {
 
   const handleTimelineDateRangeChange = (range: DateRange, from?: string, to?: string) => {
     setTimelineDateRange(range);
-    if (from !== undefined) setTimelineCustomFrom(from || null);
-    if (to !== undefined) setTimelineCustomTo(to || null);
+    if (range === DateRange.CUSTOM) {
+      if (from !== undefined) setTimelineCustomFrom(from || null);
+      if (to !== undefined) setTimelineCustomTo(to || null);
+      return;
+    }
+    const today = new Date();
+    const toDate = today.toISOString().slice(0, 10);
+    const daysMap: Partial<Record<DateRange, number>> = {
+      [DateRange.TODAY]: 0,
+      [DateRange.THREE_DAYS]: 3,
+      [DateRange.SEVEN_DAYS]: 7,
+      [DateRange.THIRTY_DAYS]: 30,
+    };
+    const days = daysMap[range] ?? 0;
+    const fromDate = new Date(today.getTime() - days * 86400000).toISOString().slice(0, 10);
+    setTimelineCustomFrom(fromDate);
+    setTimelineCustomTo(toDate);
   };
 
   const filteredTimelineContractions = filterByDateRange({

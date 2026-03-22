@@ -5,6 +5,7 @@ import {
   FIVE_ONE_ONE_MIN_CONTRACTIONS,
   FIVE_ONE_ONE_WINDOW_SECONDS,
 } from '@contracking/shared';
+import { formatDuration } from '../utils/format-date';
 
 type FiveOneOneProgressProps = {
   contractions: Contraction[];
@@ -126,17 +127,17 @@ export function FiveOneOneProgress({ contractions }: FiveOneOneProgressProps) {
       <div className="flex gap-2">
         <Criterion
           label={`Intervalo (\u2264${FIVE_ONE_ONE_INTERVAL_THRESHOLD_SECONDS / 60}min)`}
-          value={`${progress.intervalMinutes}min`}
+          value={formatDuration(progress.intervalMinutes! * 60)}
           met={progress.intervalMet}
         />
         <Criterion
           label={`Duração (\u2265${FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS}s)`}
-          value={`${progress.durationSeconds}s`}
+          value={formatDuration(progress.durationSeconds!)}
           met={progress.durationMet}
         />
         <Criterion
           label={`Janela (\u2265${FIVE_ONE_ONE_WINDOW_SECONDS / 3600}h)`}
-          value={`${progress.windowMinutes}min`}
+          value={formatDuration(progress.windowMinutes! * 60)}
           met={progress.windowMet}
         />
       </div>

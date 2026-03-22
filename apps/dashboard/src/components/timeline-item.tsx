@@ -1,6 +1,6 @@
 import type { Contraction } from '@contracking/shared';
 import { Intensity, Position } from '@contracking/shared';
-import { formatTimeWithDate } from '../utils/format-date';
+import { formatDuration, formatInterval, formatTimeWithDate } from '../utils/format-date';
 
 type TimelineItemProps = {
   contraction: Contraction;
@@ -45,27 +45,11 @@ function computeDurationSeconds(startedAt: Date | string, endedAt: Date | string
   return Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000);
 }
 
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (remainingSeconds === 0) return `${minutes}min`;
-  return `${minutes}m${remainingSeconds}s`;
-}
-
 function computeIntervalSeconds(contraction: Contraction, previousContraction: Contraction | null): number | null {
   if (!previousContraction?.endedAt) return null;
   return Math.round(
     (new Date(contraction.startedAt).getTime() - new Date(previousContraction.endedAt).getTime()) / 1000,
   );
-}
-
-function formatInterval(intervalSeconds: number): string {
-  const minutes = Math.floor(intervalSeconds / 60);
-  const seconds = intervalSeconds % 60;
-  if (minutes === 0) return `${seconds}s`;
-  if (seconds === 0) return `${minutes}min`;
-  return `${minutes}m${seconds}s`;
 }
 
 type MiniBarsProps = {

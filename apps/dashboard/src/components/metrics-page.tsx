@@ -3,7 +3,7 @@ import { DateRange } from '@contracking/shared';
 import { AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { filterByDateRange } from '../utils/filter-by-date';
-import { formatShortDateTime } from '../utils/format-date';
+import { formatDuration, formatInterval, formatShortDateTime } from '../utils/format-date';
 import { DateRangeFilter } from './date-range-filter';
 import { EventsList } from './events-list';
 import { ExportImport } from './export-import';
@@ -29,15 +29,6 @@ function StatCard({ value, label }: StatCardProps) {
       </div>
     </div>
   );
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  return `${Math.round(seconds / 60)}min`;
-}
-
-function formatInterval(seconds: number): string {
-  return `${Math.round(seconds / 60)}min`;
 }
 
 const REGULARITY_STYLE = {
@@ -102,8 +93,23 @@ export function MetricsPage({ contractions, events, stats, onDeleteEvent, onImpo
 
   const handleDateRangeChange = (range: DateRange, from?: string, to?: string) => {
     setDateRange(range);
-    if (from !== undefined) setCustomFrom(from || null);
-    if (to !== undefined) setCustomTo(to || null);
+    if (range === DateRange.CUSTOM) {
+      if (from !== undefined) setCustomFrom(from || null);
+      if (to !== undefined) setCustomTo(to || null);
+      return;
+    }
+    const today = new Date();
+    const toDate = today.toISOString().slice(0, 10);
+    const daysMap: Partial<Record<DateRange, number>> = {
+      [DateRange.TODAY]: 0,
+      [DateRange.THREE_DAYS]: 3,
+      [DateRange.SEVEN_DAYS]: 7,
+      [DateRange.THIRTY_DAYS]: 30,
+    };
+    const days = daysMap[range] ?? 0;
+    const fromDate = new Date(today.getTime() - days * 86400000).toISOString().slice(0, 10);
+    setCustomFrom(fromDate);
+    setCustomTo(toDate);
   };
 
   const filteredContractions = filterByDateRange({ items: contractions, range: dateRange, customFrom, customTo });

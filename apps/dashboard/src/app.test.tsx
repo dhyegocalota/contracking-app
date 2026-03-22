@@ -1,15 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import type { Contraction } from '@contracking/shared';
 import { Intensity } from '@contracking/shared';
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.round(seconds / 60)}min`;
-}
-
-function formatInterval(seconds: number): string {
-  return `${Math.round(seconds / 60)}min`;
-}
+import { formatDuration, formatInterval } from './utils/format-date';
 
 function formatTime(date: Date | string): string {
   const d = new Date(date);
@@ -95,8 +87,8 @@ describe('formatDuration', () => {
     expect(formatDuration(60)).toBe('1min');
   });
 
-  test('rounds to nearest minute', () => {
-    expect(formatDuration(90)).toBe('2min');
+  test('formats minutes and seconds', () => {
+    expect(formatDuration(90)).toBe('1m30s');
   });
 
   test('formats 0 seconds', () => {
@@ -106,6 +98,30 @@ describe('formatDuration', () => {
   test('formats 59 seconds with s suffix', () => {
     expect(formatDuration(59)).toBe('59s');
   });
+
+  test('formats hours', () => {
+    expect(formatDuration(3600)).toBe('1h');
+  });
+
+  test('formats hours and minutes', () => {
+    expect(formatDuration(5400)).toBe('1h 30min');
+  });
+
+  test('formats days', () => {
+    expect(formatDuration(86400)).toBe('1d');
+  });
+
+  test('formats days and hours', () => {
+    expect(formatDuration(90000)).toBe('1d 1h');
+  });
+
+  test('formats months', () => {
+    expect(formatDuration(2592000)).toBe('1mês');
+  });
+
+  test('formats months and days', () => {
+    expect(formatDuration(2678400)).toBe('1mês 1d');
+  });
 });
 
 describe('formatInterval', () => {
@@ -113,12 +129,12 @@ describe('formatInterval', () => {
     expect(formatInterval(300)).toBe('5min');
   });
 
-  test('formats 0 seconds as 0min', () => {
-    expect(formatInterval(0)).toBe('0min');
+  test('formats 0 seconds as 0s', () => {
+    expect(formatInterval(0)).toBe('0s');
   });
 
-  test('rounds to nearest minute', () => {
-    expect(formatInterval(90)).toBe('2min');
+  test('formats minutes and seconds', () => {
+    expect(formatInterval(90)).toBe('1m30s');
   });
 });
 

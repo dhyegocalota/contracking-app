@@ -1,17 +1,9 @@
 import type { SessionStats } from '@contracking/shared';
+import { formatDuration, formatInterval } from '../utils/format-date';
 
 type StatusBarProps = {
   stats: SessionStats;
 };
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  return `${Math.round(seconds / 60)}min`;
-}
-
-function formatInterval(seconds: number): string {
-  return `${Math.round(seconds / 60)}min`;
-}
 
 type StatItemProps = {
   value: string;

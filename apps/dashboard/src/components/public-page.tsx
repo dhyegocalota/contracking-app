@@ -7,6 +7,7 @@ import { fetchPublicSession, pollPublicSession } from '../api';
 import { usePolling } from '../hooks/use-polling';
 import { usePushSubscription } from '../hooks/use-push-subscription';
 import { filterByDateRange } from '../utils/filter-by-date';
+import { formatDuration, formatInterval } from '../utils/format-date';
 import { DateRangeFilter } from './date-range-filter';
 import { PublicChart } from './public-chart';
 import { Skeleton } from './skeleton';
@@ -23,15 +24,6 @@ function formatTime(date: Date | string, timezone: string | null): string {
     return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: timezone });
   }
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.round(seconds / 60)}min`;
-}
-
-function formatInterval(seconds: number): string {
-  return `${Math.round(seconds / 60)}min`;
 }
 
 function formatTimezoneAbbreviation(timezone: string): string {

@@ -76,3 +76,39 @@ export function formatChartTime({ date, includeDate }: { date: Date; includeDate
 export function getDayKey(date: Date): string {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
+
+const SECONDS_PER_MONTH = 2592000;
+
+export function formatDuration(seconds: number): string {
+  if (seconds < SECONDS_PER_MINUTE) return `${Math.round(seconds)}s`;
+
+  if (seconds < SECONDS_PER_HOUR) {
+    const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+    const remainingSeconds = Math.round(seconds % SECONDS_PER_MINUTE);
+    if (remainingSeconds === 0) return `${minutes}min`;
+    return `${minutes}m${remainingSeconds}s`;
+  }
+
+  if (seconds < SECONDS_PER_DAY) {
+    const hours = Math.floor(seconds / SECONDS_PER_HOUR);
+    const minutes = Math.round((seconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}min`;
+  }
+
+  if (seconds < SECONDS_PER_MONTH) {
+    const days = Math.floor(seconds / SECONDS_PER_DAY);
+    const hours = Math.round((seconds % SECONDS_PER_DAY) / SECONDS_PER_HOUR);
+    if (hours === 0) return `${days}d`;
+    return `${days}d ${hours}h`;
+  }
+
+  const months = Math.floor(seconds / SECONDS_PER_MONTH);
+  const days = Math.round((seconds % SECONDS_PER_MONTH) / SECONDS_PER_DAY);
+  if (days === 0) return `${months}mês`;
+  return `${months}mês ${days}d`;
+}
+
+export function formatInterval(seconds: number): string {
+  return formatDuration(seconds);
+}
