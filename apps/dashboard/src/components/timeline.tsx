@@ -7,6 +7,7 @@ type TimelineProps = {
   contractions: Contraction[];
   allContractions?: Contraction[];
   regularity: 'regular' | 'irregular' | null;
+  newestContractionId?: string | null;
   onEdit?: (contraction: Contraction) => void;
   onDelete?: (id: string) => void;
   onDateChange?: (range: DateRange) => void;
@@ -87,7 +88,15 @@ function EmptyStateBanner({ allContractions, onDateChange }: EmptyStateBannerPro
   );
 }
 
-export function Timeline({ contractions, allContractions, regularity, onEdit, onDelete, onDateChange }: TimelineProps) {
+export function Timeline({
+  contractions,
+  allContractions,
+  regularity,
+  newestContractionId,
+  onEdit,
+  onDelete,
+  onDateChange,
+}: TimelineProps) {
   const sorted = [...contractions]
     .filter((contraction) => contraction.endedAt !== null)
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
@@ -126,6 +135,7 @@ export function Timeline({ contractions, allContractions, regularity, onEdit, on
                   key={contraction.id}
                   contraction={contraction}
                   previousContraction={previousContraction}
+                  isNew={contraction.id === newestContractionId}
                   onEdit={onEdit}
                   onDelete={onDelete}
                 />

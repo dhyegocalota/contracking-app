@@ -8,7 +8,7 @@ type MainButtonProps = {
   onPress: () => void;
 };
 
-const IDLE_GLOW = '0 0 60px rgba(185,58,94,0.25)';
+const IDLE_GLOW = '0 0 40px rgba(185,58,94,0.15)';
 const ACTIVE_PULSE_COLOR = 'rgba(239,68,68,0.25)';
 const ACTIVE_PULSE_COLOR_INTENSE = 'rgba(239,68,68,0.4)';
 const WARNING_PULSE_COLOR = 'rgba(255,167,38,0.25)';
@@ -24,7 +24,7 @@ function formatTime(seconds: number): string {
 
 function formatLastContraction(lastContractionAt: Date | null): string {
   if (!lastContractionAt) return '';
-  return `Última contração há ${formatRelativeTime(lastContractionAt)}`;
+  return `Última há ${formatRelativeTime(lastContractionAt)}`;
 }
 
 type PulseColors = { pulseColor: string; pulseColorIntense: string };
@@ -60,10 +60,12 @@ export function MainButton({ isActive, elapsedSeconds, lastContractionAt, onPres
     <button
       type="button"
       onClick={onPress}
-      className={`flex flex-col items-center justify-center w-[140px] h-[140px] rounded-full bg-gradient-to-br ${isActive ? 'from-stop-dark to-stop' : 'from-accent-dark to-accent'}`}
+      className={`flex flex-col items-center justify-center w-[140px] h-[140px] rounded-full ${isActive ? 'bg-gradient-to-br from-stop-dark to-stop' : ''}`}
       style={
         {
           boxShadow: isActive ? undefined : IDLE_GLOW,
+          border: isActive ? undefined : '2px solid var(--accent)',
+          background: isActive ? undefined : 'transparent',
           transition: 'all 0.3s ease',
           animation: isActive ? 'pulseGlow 2s ease-in-out infinite' : undefined,
           '--pulse-color': pulseColors?.pulseColor,
@@ -72,12 +74,15 @@ export function MainButton({ isActive, elapsedSeconds, lastContractionAt, onPres
       }
     >
       <span
-        className="text-2xl font-semibold text-white"
-        style={{ fontVariantNumeric: isActive ? 'tabular-nums' : undefined }}
+        className="text-2xl font-semibold"
+        style={{
+          fontVariantNumeric: isActive ? 'tabular-nums' : undefined,
+          color: isActive ? 'white' : 'var(--accent)',
+        }}
       >
         {isActive ? formatTime(elapsedSeconds) : 'Iniciar'}
       </span>
-      <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
+      <span className="text-[11px]" style={{ color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>
         {subtitle}
       </span>
     </button>

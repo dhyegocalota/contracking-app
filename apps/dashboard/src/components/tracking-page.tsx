@@ -7,7 +7,7 @@ import {
   PushSubscriptionType,
   SyncStatus,
 } from '@contracking/shared';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocalSession } from '../hooks/use-local-session';
 import { useNotifications } from '../hooks/use-notifications';
 import { usePushSubscription } from '../hooks/use-push-subscription';
@@ -22,6 +22,7 @@ import { EditContraction } from './edit-contraction';
 import { EventChips } from './event-chips';
 import { EventForm } from './event-form';
 import { EventsList } from './events-list';
+import { FiveOneOneProgress } from './five-one-one-progress';
 import { Header } from './header';
 import { INSTRUCTIONS_SEEN_KEY, InstructionsModal } from './instructions-modal';
 import { IntensityChips } from './intensity-chips';
@@ -82,6 +83,8 @@ export function TrackingPage() {
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [feedbackRipple, setFeedbackRipple] = useState<'start' | 'stop' | null>(null);
+  const [newestContractionId, setNewestContractionId] = useState<string | null>(null);
+  const newestContractionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [timelineDateRange, setTimelineDateRange] = useState<DateRange>(DateRange.TODAY);
   const [timelineCustomFrom, setTimelineCustomFrom] = useState<string | null>(null);
   const [timelineCustomTo, setTimelineCustomTo] = useState<string | null>(null);
@@ -124,6 +127,9 @@ export function TrackingPage() {
     (contractionId: string) => {
       timer.stop();
       stopContraction(contractionId);
+      setNewestContractionId(contractionId);
+      if (newestContractionTimerRef.current) clearTimeout(newestContractionTimerRef.current);
+      newestContractionTimerRef.current = setTimeout(() => setNewestContractionId(null), 1000);
       const updatedPreferences = { ...preferences, lastIntensity: intensity, lastPosition: position };
       savePreferences(updatedPreferences);
       setPreferences(updatedPreferences);
@@ -153,6 +159,9 @@ export function TrackingPage() {
       setIsStopping(true);
       timer.stop();
       stopContraction(activeContraction.id);
+      setNewestContractionId(activeContraction.id);
+      if (newestContractionTimerRef.current) clearTimeout(newestContractionTimerRef.current);
+      newestContractionTimerRef.current = setTimeout(() => setNewestContractionId(null), 1000);
       const updatedPreferences = { ...preferences, lastIntensity: intensity, lastPosition: position };
       savePreferences(updatedPreferences);
       setPreferences(updatedPreferences);
@@ -359,6 +368,7 @@ export function TrackingPage() {
                 <EventsList events={events} onDelete={deleteEvent} />
               </div>
             )}
+            <FiveOneOneProgress contractions={contractions} />
             <div style={{ height: 1, background: 'var(--divider)', margin: '8px 16px' }} />
             <div className="px-4 pb-2">
               <DateRangeFilter
@@ -373,6 +383,7 @@ export function TrackingPage() {
                 contractions={filteredTimelineContractions}
                 allContractions={contractions}
                 regularity={stats?.regularity ?? null}
+                newestContractionId={newestContractionId}
                 onEdit={setEditingContraction}
                 onDelete={deleteContraction}
                 onDateChange={handleTimelineDateRangeChange}

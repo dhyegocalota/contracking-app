@@ -1,10 +1,11 @@
 import type { Contraction } from '@contracking/shared';
-import { Intensity, Position } from '@contracking/shared';
+import { FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS, Intensity, Position } from '@contracking/shared';
 import { formatTimeWithDate } from '../utils/format-date';
 
 type TimelineItemProps = {
   contraction: Contraction;
   previousContraction: Contraction | null;
+  isNew?: boolean;
   onEdit?: (contraction: Contraction) => void;
   onDelete?: (id: string) => void;
 };
@@ -33,22 +34,45 @@ const MINI_BAR_HEIGHTS: Record<Intensity, number[]> = {
 const MINI_MAX_BAR_HEIGHT = 10;
 const MINI_BAR_GAP = 2;
 
+const FIVE_MINUTES_SECONDS = 300;
+const INTERVAL_COLOR_GOOD = 'rgba(76,175,80,0.8)';
+const INTERVAL_COLOR_NORMAL = 'var(--text-secondary)';
+const INTERVAL_COLOR_FAINT = 'var(--text-muted)';
+
 function formatDuration(startedAt: Date | string, endedAt: Date | string | null): string {
   if (!endedAt) return '—';
   const seconds = Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000);
-  return `${seconds}s`;
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (remainingSeconds === 0) return `${minutes}min`;
+  return `${minutes}m${remainingSeconds}s`;
 }
 
-function formatInterval(contraction: Contraction, previousContraction: Contraction | null): string {
-  if (!previousContraction?.endedAt) return '—';
-  const diffSeconds = Math.round(
+function computeIntervalSeconds(contraction: Contraction, previousContraction: Contraction | null): number | null {
+  if (!previousContraction?.endedAt) return null;
+  return Math.round(
     (new Date(contraction.startedAt).getTime() - new Date(previousContraction.endedAt).getTime()) / 1000,
   );
-  const minutes = Math.floor(diffSeconds / 60);
-  const seconds = diffSeconds % 60;
-  if (minutes === 0) return `int. ${seconds}s`;
-  if (seconds === 0) return `int. ${minutes}min`;
-  return `int. ${minutes}min ${seconds}s`;
+}
+
+function formatInterval(intervalSeconds: number): string {
+  const minutes = Math.floor(intervalSeconds / 60);
+  const seconds = intervalSeconds % 60;
+  if (minutes === 0) return `${seconds}s`;
+  if (seconds === 0) return `${minutes}min`;
+  return `${minutes}m${seconds}s`;
+}
+
+function resolveIntervalColor(intervalSeconds: number): string {
+  if (intervalSeconds <= FIVE_MINUTES_SECONDS) return INTERVAL_COLOR_GOOD;
+  return INTERVAL_COLOR_NORMAL;
+}
+
+function isDurationMet(startedAt: Date | string, endedAt: Date | string | null): boolean {
+  if (!endedAt) return false;
+  const seconds = Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000);
+  return seconds >= FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS;
 }
 
 type MiniBarsProps = {
@@ -88,48 +112,73 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
   [Intensity.STRONG]: 'forte',
 };
 
-export function TimelineItem({ contraction, previousContraction, onEdit, onDelete: _ }: TimelineItemProps) {
+export function TimelineItem({ contraction, previousContraction, isNew, onEdit, onDelete: _ }: TimelineItemProps) {
   const dotConfig = contraction.intensity ? DOT_COLOR[contraction.intensity] : { color: 'var(--text-muted)' };
+  const intervalSeconds = computeIntervalSeconds(contraction, previousContraction);
+  const durationMet = isDurationMet(contraction.startedAt, contraction.endedAt);
 
   return (
-    <button
-      type="button"
-      onClick={onEdit ? () => onEdit(contraction) : undefined}
-      disabled={!onEdit}
-      className="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] mb-0.5 text-left"
-      style={{
-        background: 'var(--card-bg)',
-        border: '1px solid var(--card-border)',
-        cursor: onEdit ? 'pointer' : 'default',
-        animation: 'fadeSlideUp 0.25s ease',
-      }}
-    >
-      <div
-        className="rounded-full flex-shrink-0"
-        style={{ width: 6, height: 6, background: dotConfig.color, boxShadow: dotConfig.shadow }}
-      />
-      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-        <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
-          {formatTimeWithDate(new Date(contraction.startedAt))}
-        </span>
-        <div className="flex items-center gap-1.5">
-          {contraction.intensity && <MiniBars intensity={contraction.intensity} />}
-          {contraction.intensity && (
-            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{INTENSITY_LABEL[contraction.intensity]}</span>
-          )}
-          {contraction.position && (
-            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{POSITION_LABEL[contraction.position]}</span>
-          )}
+    <div className="flex flex-col">
+      {intervalSeconds !== null && (
+        <div className="flex items-center justify-center gap-1.5 py-1">
+          <div style={{ height: 1, flex: 1, background: 'var(--divider)' }} />
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: resolveIntervalColor(intervalSeconds),
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {formatInterval(intervalSeconds)}
+          </span>
+          <div style={{ height: 1, flex: 1, background: 'var(--divider)' }} />
         </div>
-      </div>
-      <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-        <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
-          {formatDuration(contraction.startedAt, contraction.endedAt)}
-        </span>
-        <span style={{ fontSize: 9, color: 'var(--text-faint)' }}>
-          {formatInterval(contraction, previousContraction)}
-        </span>
-      </div>
-    </button>
+      )}
+      <button
+        type="button"
+        onClick={onEdit ? () => onEdit(contraction) : undefined}
+        disabled={!onEdit}
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] text-left"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          cursor: onEdit ? 'pointer' : 'default',
+          animation: isNew ? 'newItem 0.4s cubic-bezier(0.22,1,0.36,1)' : undefined,
+        }}
+      >
+        <div
+          className="rounded-full flex-shrink-0"
+          style={{ width: 6, height: 6, background: dotConfig.color, boxShadow: dotConfig.shadow }}
+        />
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+            {formatTimeWithDate(new Date(contraction.startedAt))}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {contraction.intensity && <MiniBars intensity={contraction.intensity} />}
+            {contraction.intensity && (
+              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{INTENSITY_LABEL[contraction.intensity]}</span>
+            )}
+            {contraction.position && (
+              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{POSITION_LABEL[contraction.position]}</span>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: durationMet ? INTERVAL_COLOR_GOOD : 'var(--text-secondary)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {formatDuration(contraction.startedAt, contraction.endedAt)}
+          </span>
+          {intervalSeconds === null && <span style={{ fontSize: 9, color: INTERVAL_COLOR_FAINT }}>primeira</span>}
+        </div>
+      </button>
+    </div>
   );
 }
