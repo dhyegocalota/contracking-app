@@ -18,12 +18,12 @@ import { getPreferences, savePreferences } from '../storage';
 import { filterByDateRange } from '../utils/filter-by-date';
 import { AccountSheet } from './account-sheet';
 import { BottomSheet } from './bottom-sheet';
+import { BreathingCoach } from './breathing-coach';
 import { DateRangeFilter } from './date-range-filter';
 import { DebugPanel } from './debug-panel';
 import { EditContraction } from './edit-contraction';
 import { EventChips } from './event-chips';
 import { EventForm } from './event-form';
-import { EventsList } from './events-list';
 import { FiveOneOneProgress } from './five-one-one-progress';
 import { Header } from './header';
 import { INSTRUCTIONS_SEEN_KEY, InstructionsModal } from './instructions-modal';
@@ -105,6 +105,13 @@ export function TrackingPage() {
 
   const filteredTimelineContractions = filterByDateRange({
     items: contractions,
+    range: timelineDateRange,
+    customFrom: timelineCustomFrom,
+    customTo: timelineCustomTo,
+  });
+
+  const filteredTimelineEvents = filterByDateRange({
+    items: events,
     range: timelineDateRange,
     customFrom: timelineCustomFrom,
     customTo: timelineCustomTo,
@@ -335,6 +342,7 @@ export function TrackingPage() {
                 </div>
               )}
             </div>
+            <BreathingCoach isActive={isVisuallyActive} />
             <div className="flex justify-center py-1.5">
               <IntensityChips value={intensity} onChange={handleIntensityChange} />
             </div>
@@ -385,11 +393,6 @@ export function TrackingPage() {
                 </span>
               </button>
             </div>
-            {events.length > 0 && (
-              <div className="mt-2">
-                <EventsList events={events} onDelete={deleteEvent} />
-              </div>
-            )}
             <div style={{ height: 1, background: 'var(--divider)', margin: '8px 16px' }} />
             <div className="px-4 pb-2">
               <DateRangeFilter
@@ -404,10 +407,12 @@ export function TrackingPage() {
               <Timeline
                 contractions={filteredTimelineContractions}
                 allContractions={contractions}
+                events={filteredTimelineEvents}
                 regularity={calculateRegularity(filteredTimelineContractions)}
                 newestContractionId={newestContractionId}
                 onEdit={setEditingContraction}
                 onDelete={deleteContraction}
+                onDeleteEvent={deleteEvent}
                 onDateChange={handleTimelineDateRangeChange}
               />
             </div>

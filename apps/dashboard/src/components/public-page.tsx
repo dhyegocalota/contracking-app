@@ -1,7 +1,7 @@
 import type { Contraction, Event, SessionStats, TrackingSession } from '@contracking/shared';
-import { DateRange, EventType, POLLING_INTERVAL_MILLISECONDS, PushSubscriptionType } from '@contracking/shared';
+import { DateRange, POLLING_INTERVAL_MILLISECONDS, PushSubscriptionType } from '@contracking/shared';
 import type { LucideIcon } from 'lucide-react';
-import { AlertTriangle, Calendar, Clock, Droplets, Globe, MessageSquare, Ruler, User, Utensils } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, Globe, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { fetchPublicSession, pollPublicSession } from '../api';
 import { usePolling } from '../hooks/use-polling';
@@ -74,42 +74,6 @@ function StatCard({ value, label }: StatCardProps) {
       <div className="uppercase tracking-wider" style={{ fontSize: 8, color: 'var(--text-muted)', marginTop: 2 }}>
         {label}
       </div>
-    </div>
-  );
-}
-
-const EVENT_ICON: Record<EventType, LucideIcon> = {
-  [EventType.WATER_BREAK]: Droplets,
-  [EventType.MEAL]: Utensils,
-  [EventType.DILATION]: Ruler,
-  [EventType.NOTE]: MessageSquare,
-};
-
-function formatEventText(event: Event): string {
-  if (event.type === EventType.WATER_BREAK) return 'Bolsa ruptura';
-  if (event.type === EventType.MEAL) return 'Última refeição';
-  if (event.type === EventType.DILATION) return `Dilatação ${event.value}`;
-  return event.value ?? 'Nota';
-}
-
-type EventLogItemProps = {
-  event: Event;
-  timezone: string | null;
-};
-
-function EventLogItem({ event, timezone }: EventLogItemProps) {
-  const Icon = EVENT_ICON[event.type];
-
-  return (
-    <div
-      className="flex items-center gap-2 rounded-[10px] px-3 py-1.5 mb-0.5"
-      style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
-    >
-      <Icon size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-      <span style={{ fontSize: 11, color: 'var(--text-secondary)', flex: 1 }}>{formatEventText(event)}</span>
-      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
-        {formatTime(event.occurredAt, timezone)}
-      </span>
     </div>
   );
 }
@@ -305,20 +269,12 @@ export function PublicPage() {
 
         {contractions.length > 0 && <PublicChart contractions={contractions} />}
 
-        {events.length > 0 && (
-          <div className="flex flex-col gap-1">
-            <span className="uppercase tracking-wider" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-              Eventos
-            </span>
-            <div>
-              {events.map((event) => (
-                <EventLogItem key={event.id} event={event} timezone={timezone} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <Timeline contractions={contractions} regularity={stats?.regularity ?? null} />
+        <Timeline
+          contractions={contractions}
+          events={events}
+          regularity={stats?.regularity ?? null}
+          timezone={timezone}
+        />
 
         <div
           className="flex flex-col items-center gap-2 py-6 mt-2 rounded-xl"
