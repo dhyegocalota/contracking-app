@@ -1,5 +1,6 @@
 import type { Contraction, Intensity, Position } from '@contracking/shared';
 import { useState } from 'react';
+import { formatDuration } from '../utils/format-date';
 import { IntensityChips } from './intensity-chips';
 import { PositionChips } from './position-chips';
 
@@ -35,6 +36,28 @@ function combineDateAndTime({ date, time }: { date: string; time: string }): str
   const [hours, minutes, seconds] = time.split(':').map(Number);
   const combined = new Date(year!, month! - 1, day!, hours, minutes, seconds ?? 0);
   return combined.toISOString();
+}
+
+const MIN_DURATION_SECONDS = 5;
+const MAX_DURATION_SECONDS = 300;
+const DURATION_STEP_SECONDS = 5;
+
+function computeEndTime({
+  startDate,
+  startTime,
+  durationSeconds,
+}: {
+  startDate: string;
+  startTime: string;
+  durationSeconds: number;
+}): { time: string; date: string } {
+  const startIso = combineDateAndTime({ date: startDate, time: startTime });
+  const endMs = new Date(startIso).getTime() + durationSeconds * 1000;
+  const endDate = new Date(endMs);
+  return {
+    time: `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:${String(endDate.getSeconds()).padStart(2, '0')}`,
+    date: `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`,
+  };
 }
 
 const INPUT_STYLE = {
@@ -120,6 +143,20 @@ export function EditContraction({ contraction, onSave, onDelete, onClose: _ }: E
 
   const hasEnd = endTime !== '' && endDate !== '';
 
+  const computedDurationSeconds = hasEnd
+    ? Math.round(
+        (new Date(combineDateAndTime({ date: endDate, time: endTime })).getTime() -
+          new Date(combineDateAndTime({ date: startDate, time: startTime })).getTime()) /
+          1000,
+      )
+    : 0;
+
+  const handleDurationChange = (seconds: number) => {
+    const newEnd = computeEndTime({ startDate, startTime, durationSeconds: seconds });
+    setEndTime(newEnd.time);
+    setEndDate(newEnd.date);
+  };
+
   const handleSave = () => {
     const startedAt = combineDateAndTime({ date: startDate, time: startTime });
     const endedAt = hasEnd ? combineDateAndTime({ date: endDate, time: endTime }) : null;
@@ -140,6 +177,35 @@ export function EditContraction({ contraction, onSave, onDelete, onClose: _ }: E
           <TimeField label="Fim" time={endTime} date={endDate} onTimeChange={setEndTime} onDateChange={setEndDate} />
         )}
       </div>
+      {hasEnd && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+              Duração
+            </span>
+            <span
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {formatDuration(computedDurationSeconds)}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={MIN_DURATION_SECONDS}
+            max={MAX_DURATION_SECONDS}
+            step={DURATION_STEP_SECONDS}
+            value={Math.min(Math.max(computedDurationSeconds, MIN_DURATION_SECONDS), MAX_DURATION_SECONDS)}
+            onChange={(event) => handleDurationChange(Number(event.target.value))}
+            className="w-full"
+            style={{ accentColor: 'var(--accent)' }}
+          />
+        </div>
+      )}
       <div className="flex flex-col gap-2">
         <span className="uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
           Intensidade

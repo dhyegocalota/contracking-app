@@ -220,6 +220,10 @@ export function PublicPage() {
   const { session, stats } = state;
   const timezone = session?.timezone ?? null;
   const timezoneAbbreviation = timezone ? formatTimezoneAbbreviation(timezone) : null;
+  const sortedContractions = [...state.contractions].sort(
+    (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
+  );
+  const firstContractionAt = sortedContractions[0]?.startedAt ?? null;
   const contractions = filterByDateRange({ items: state.contractions, range: dateRange, customFrom, customTo });
   const events = filterByDateRange({ items: state.events, range: dateRange, customFrom, customTo });
 
@@ -262,7 +266,9 @@ export function PublicPage() {
         <div className="flex gap-2 flex-wrap">
           {session?.patientName && <PatientTag Icon={User} label={session.patientName} />}
           {session?.gestationalWeek && <PatientTag Icon={Calendar} label={`Semana ${session.gestationalWeek}`} />}
-          {session?.startedAt && <PatientTag Icon={Clock} label={formatTime(session.startedAt, timezone)} />}
+          {firstContractionAt && (
+            <PatientTag Icon={Clock} label={`Início ${formatTime(firstContractionAt, timezone)}`} />
+          )}
           {timezoneAbbreviation && <PatientTag Icon={Globe} label={`Horários em ${timezoneAbbreviation}`} />}
         </div>
 
@@ -313,6 +319,20 @@ export function PublicPage() {
         )}
 
         <Timeline contractions={contractions} regularity={stats?.regularity ?? null} />
+
+        <div
+          className="flex flex-col items-center gap-2 py-6 mt-2 rounded-xl"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+        >
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Acompanhe suas contrações em tempo real</span>
+          <a
+            href="/"
+            className="px-5 py-2 rounded-lg text-sm font-semibold text-white"
+            style={{ background: 'var(--accent)' }}
+          >
+            Usar o Contracking
+          </a>
+        </div>
       </div>
     </div>
   );

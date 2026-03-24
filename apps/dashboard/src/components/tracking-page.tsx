@@ -11,6 +11,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocalSession } from '../hooks/use-local-session';
 import { useNotifications } from '../hooks/use-notifications';
+import { usePullToSync } from '../hooks/use-pull-to-sync';
 import { usePushSubscription } from '../hooks/use-push-subscription';
 import { useTimer } from '../hooks/use-timer';
 import { getPreferences, savePreferences } from '../storage';
@@ -30,6 +31,7 @@ import { IntensityChips } from './intensity-chips';
 import { MainButton } from './main-button';
 import { MetricsPage } from './metrics-page';
 import { PositionChips } from './position-chips';
+import { PullToSyncIndicator } from './pull-to-sync-indicator';
 import { ShareModal } from './share-modal';
 import { StatusBanners } from './status-banners';
 import { Timeline } from './timeline';
@@ -146,6 +148,14 @@ export function TrackingPage() {
   );
 
   const { subscribe: subscribePush } = usePushSubscription({ type: PushSubscriptionType.OWNER });
+  const {
+    pullDistance,
+    isSyncing: isPullSyncing,
+    handlers: pullHandlers,
+  } = usePullToSync({
+    onSync: sync,
+    enabled: syncStatus !== SyncStatus.NOT_AUTHENTICATED,
+  });
 
   useNotifications({ activeContraction, onAutoStop: handleAutoStop, onPermissionGranted: subscribePush });
 
@@ -244,7 +254,14 @@ export function TrackingPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
+    <div
+      className="min-h-screen"
+      style={{ background: 'var(--bg)' }}
+      onTouchStart={pullHandlers.onTouchStart}
+      onTouchMove={pullHandlers.onTouchMove}
+      onTouchEnd={pullHandlers.onTouchEnd}
+    >
+      <PullToSyncIndicator pullDistance={pullDistance} isSyncing={isPullSyncing} />
       <div className="max-w-md mx-auto flex flex-col gap-4">
         <Header
           patientName={session.patientName}
