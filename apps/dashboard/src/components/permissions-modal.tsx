@@ -1,4 +1,4 @@
-import { Moon, Smartphone } from 'lucide-react';
+import { HelpCircle, Moon, Smartphone } from 'lucide-react';
 import { useState } from 'react';
 
 export const PERMISSIONS_SEEN_KEY = 'contracking_permissions_seen';
@@ -58,6 +58,7 @@ function ToggleRow({ icon, title, description, enabled, supported, onToggle }: T
 type PermissionsModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  onHelpClick?: () => void;
   wakeLock: {
     isSupported: boolean;
     isEnabled: boolean;
@@ -72,7 +73,7 @@ type PermissionsModalProps = {
   };
 };
 
-export function PermissionsModal({ isOpen, onClose, wakeLock, shake }: PermissionsModalProps) {
+export function PermissionsModal({ isOpen, onClose, onHelpClick, wakeLock, shake }: PermissionsModalProps) {
   const [wakeLockEnabled, setWakeLockEnabled] = useState(wakeLock.isEnabled);
   const [shakeEnabled, setShakeEnabled] = useState(shake.isEnabled);
 
@@ -127,10 +128,10 @@ export function PermissionsModal({ isOpen, onClose, wakeLock, shake }: Permissio
       >
         <div>
           <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Permissões
+            Configurações
           </h2>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-            Ative para uma melhor experiência durante o trabalho de parto
+            Personalize sua experiência durante o trabalho de parto
           </p>
         </div>
 
@@ -153,18 +154,32 @@ export function PermissionsModal({ isOpen, onClose, wakeLock, shake }: Permissio
           />
         </div>
 
+        {onHelpClick && (
+          <button
+            type="button"
+            onClick={() => {
+              handleClose();
+              onHelpClick();
+            }}
+            className="flex items-center gap-3 w-full p-3 rounded-xl text-left"
+            style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+          >
+            <HelpCircle size={18} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+            <div className="flex flex-col gap-0.5 flex-1">
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Como usar</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Ver instruções do app</span>
+            </div>
+          </button>
+        )}
+
         <button
           type="button"
           onClick={handleClose}
           className="w-full rounded-xl py-3 text-white font-semibold"
           style={{ background: 'var(--accent)', fontSize: 14 }}
         >
-          Continuar
+          Fechar
         </button>
-
-        <p className="text-center" style={{ fontSize: 10, color: 'var(--text-faint)' }}>
-          Você pode alterar essas opções depois nas configurações
-        </p>
       </div>
     </dialog>
   );

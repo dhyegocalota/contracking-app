@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-const SHAKE_THRESHOLD = 20;
+const SHAKE_THRESHOLD = 30;
 const SHAKE_HITS_REQUIRED = 3;
 const SHAKE_WINDOW_MILLISECONDS = 800;
 const SHAKE_COOLDOWN_MILLISECONDS = 2000;
@@ -31,7 +31,7 @@ describe('shake detection', () => {
   });
 
   test('strong shake exceeds threshold', () => {
-    const magnitude = computeMagnitude(12, 12, 12);
+    const magnitude = computeMagnitude(20, 20, 15);
     expect(magnitude).toBeGreaterThan(SHAKE_THRESHOLD);
   });
 

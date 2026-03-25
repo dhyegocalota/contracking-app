@@ -22,50 +22,47 @@ function getContractionsFromLastHour(contractions: Contraction[]): Contraction[]
   );
 }
 
-function computeProgress(contractions: Contraction[]): {
+function computeProgress(lastHourContractions: Contraction[]): {
+  count: number;
   intervalMinutes: number | null;
   durationSeconds: number | null;
-  windowMinutes: number | null;
   intervalMet: boolean;
   durationMet: boolean;
-  windowMet: boolean;
+  countMet: boolean;
 } {
-  const finished = contractions.sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
+  const count = lastHourContractions.length;
+  const countMet = count >= FIVE_ONE_ONE_MIN_CONTRACTIONS;
 
-  if (finished.length < FIVE_ONE_ONE_MIN_CONTRACTIONS) {
-    return {
-      intervalMinutes: null,
-      durationSeconds: null,
-      windowMinutes: null,
-      intervalMet: false,
-      durationMet: false,
-      windowMet: false,
-    };
+  if (count < 2) {
+    return { count, intervalMinutes: null, durationSeconds: null, intervalMet: false, durationMet: false, countMet };
   }
 
-  const lastFive = finished.slice(-FIVE_ONE_ONE_MIN_CONTRACTIONS);
-  const intervals = lastFive
+  const sorted = [...lastHourContractions].sort(
+    (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
+  );
+
+  const intervals = sorted
     .slice(1)
     .map(
       (contraction, index) =>
-        (new Date(contraction.startedAt).getTime() - new Date(lastFive[index]!.startedAt).getTime()) / 1000,
+        (new Date(contraction.startedAt).getTime() - new Date(sorted[index]!.startedAt).getTime()) / 1000,
     );
   const averageInterval = intervals.reduce((sum, value) => sum + value, 0) / intervals.length;
+
   const averageDuration =
-    lastFive
+    sorted
       .map(
         (contraction) => (new Date(contraction.endedAt!).getTime() - new Date(contraction.startedAt).getTime()) / 1000,
       )
-      .reduce((sum, value) => sum + value, 0) / lastFive.length;
-  const windowElapsed = (Date.now() - new Date(lastFive[0]!.startedAt).getTime()) / 1000;
+      .reduce((sum, value) => sum + value, 0) / sorted.length;
 
   return {
+    count,
     intervalMinutes: Math.round(averageInterval / 60),
     durationSeconds: Math.round(averageDuration),
-    windowMinutes: Math.round(windowElapsed / 60),
     intervalMet: averageInterval <= FIVE_ONE_ONE_INTERVAL_THRESHOLD_SECONDS,
     durationMet: averageDuration >= FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS,
-    windowMet: windowElapsed >= FIVE_ONE_ONE_WINDOW_SECONDS,
+    countMet,
   };
 }
 
@@ -111,12 +108,11 @@ function Criterion({ label, value, met }: CriterionProps) {
 export function FiveOneOneProgress({ contractions }: FiveOneOneProgressProps) {
   const lastHourContractions = getContractionsFromLastHour(contractions);
   const progress = computeProgress(lastHourContractions);
-  const hasData = progress.intervalMinutes !== null;
 
-  if (!hasData) return null;
+  if (progress.count < 2) return null;
 
-  const allMet = progress.intervalMet && progress.durationMet && progress.windowMet;
-  const metCount = [progress.intervalMet, progress.durationMet, progress.windowMet].filter(Boolean).length;
+  const allMet = progress.intervalMet && progress.durationMet && progress.countMet;
+  const metCount = [progress.intervalMet, progress.durationMet, progress.countMet].filter(Boolean).length;
 
   return (
     <div className="flex flex-col gap-1.5 px-4">
@@ -141,18 +137,18 @@ export function FiveOneOneProgress({ contractions }: FiveOneOneProgressProps) {
       <div className="flex gap-2">
         <Criterion
           label={`Intervalo (\u2264${FIVE_ONE_ONE_INTERVAL_THRESHOLD_SECONDS / 60}min)`}
-          value={formatDuration(progress.intervalMinutes! * 60)}
+          value={progress.intervalMinutes !== null ? formatDuration(progress.intervalMinutes * 60) : '—'}
           met={progress.intervalMet}
         />
         <Criterion
           label={`Duração (\u2265${FIVE_ONE_ONE_DURATION_THRESHOLD_SECONDS}s)`}
-          value={formatDuration(progress.durationSeconds!)}
+          value={progress.durationSeconds !== null ? formatDuration(progress.durationSeconds) : '—'}
           met={progress.durationMet}
         />
         <Criterion
-          label={`Janela (\u2265${FIVE_ONE_ONE_WINDOW_SECONDS / 3600}h)`}
-          value={formatDuration(progress.windowMinutes! * 60)}
-          met={progress.windowMet}
+          label={`Contrações (\u2265${FIVE_ONE_ONE_MIN_CONTRACTIONS})`}
+          value={String(progress.count)}
+          met={progress.countMet}
         />
       </div>
     </div>

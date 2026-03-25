@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const SHAKE_ENABLED_KEY = 'contracking_shake_enabled';
-const SHAKE_THRESHOLD = 20;
+const SHAKE_THRESHOLD = 30;
 const SHAKE_HITS_REQUIRED = 3;
 const SHAKE_WINDOW_MILLISECONDS = 800;
 const SHAKE_COOLDOWN_MILLISECONDS = 2000;

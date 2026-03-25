@@ -304,7 +304,6 @@ export function TrackingPage() {
           timezone={session.timezone}
           syncStatus={syncStatus}
           userEmail={userEmail}
-          onHelpClick={() => setInstructionsOpen(true)}
           onShareClick={handleShareClick}
           onAccountClick={() => setAccountSheetOpen(true)}
           onSettingsClick={() => setPermissionsOpen(true)}
@@ -506,6 +505,7 @@ export function TrackingPage() {
       <PermissionsModal
         isOpen={permissionsOpen}
         onClose={() => setPermissionsOpen(false)}
+        onHelpClick={() => setInstructionsOpen(true)}
         wakeLock={wakeLock}
         shake={shake}
       />

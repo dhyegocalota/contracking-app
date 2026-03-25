@@ -7,7 +7,6 @@ type HeaderProps = {
   timezone: string | null;
   syncStatus: SyncStatus;
   userEmail: string | null;
-  onHelpClick: () => void;
   onShareClick: () => void;
   onAccountClick: () => void;
   onSettingsClick?: () => void;
@@ -43,7 +42,6 @@ export function Header({
   timezone,
   syncStatus,
   userEmail,
-  onHelpClick,
   onShareClick,
   onAccountClick,
   onSettingsClick,
@@ -65,20 +63,11 @@ export function Header({
           <h1 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
             Contracking
           </h1>
-          <div className="flex items-center gap-2">
-            {subtitleParts && (
-              <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
-                {subtitleParts}
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={onHelpClick}
-              style={{ fontSize: 10, color: 'var(--text-faint)', flexShrink: 0 }}
-            >
-              ajuda
-            </button>
-          </div>
+          {subtitleParts && (
+            <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+              {subtitleParts}
+            </p>
+          )}
         </div>
         <div className="flex gap-1.5 flex-shrink-0">
           {onSettingsClick && (
