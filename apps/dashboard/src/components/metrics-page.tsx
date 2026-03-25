@@ -153,9 +153,7 @@ export function MetricsPage({ contractions, events, onEditEvent, onImportComplet
           }}
         >
           <AlertTriangle size={14} style={{ color: 'rgb(255,167,38)', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: 'rgb(255,167,38)' }}>
-            Contrações a cada 5min ou menos há 1h — padrão 5-1-1
-          </span>
+          <span style={{ fontSize: 12, color: 'rgb(255,167,38)' }}>Padrão 5-1-1 detectado na última hora</span>
         </div>
       )}
 

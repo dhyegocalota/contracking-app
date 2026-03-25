@@ -15,6 +15,13 @@ const MET_COLOR = 'var(--accent)';
 const MET_BACKGROUND = 'rgba(217,77,115,0.08)';
 const MET_BORDER = 'rgba(217,77,115,0.15)';
 
+function getContractionsFromLastHour(contractions: Contraction[]): Contraction[] {
+  const oneHourAgo = Date.now() - FIVE_ONE_ONE_WINDOW_SECONDS * 1000;
+  return contractions.filter(
+    (contraction) => contraction.endedAt !== null && new Date(contraction.startedAt).getTime() >= oneHourAgo,
+  );
+}
+
 function computeProgress(contractions: Contraction[]): {
   intervalMinutes: number | null;
   durationSeconds: number | null;
@@ -23,9 +30,7 @@ function computeProgress(contractions: Contraction[]): {
   durationMet: boolean;
   windowMet: boolean;
 } {
-  const finished = contractions
-    .filter((contraction) => contraction.endedAt !== null)
-    .sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime());
+  const finished = contractions.sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime());
 
   if (finished.length < FIVE_ONE_ONE_MIN_CONTRACTIONS) {
     return {
@@ -99,7 +104,8 @@ function Criterion({ label, value, met }: CriterionProps) {
 }
 
 export function FiveOneOneProgress({ contractions }: FiveOneOneProgressProps) {
-  const progress = computeProgress(contractions);
+  const lastHourContractions = getContractionsFromLastHour(contractions);
+  const progress = computeProgress(lastHourContractions);
   const hasData = progress.intervalMinutes !== null;
 
   if (!hasData) return null;
@@ -110,9 +116,12 @@ export function FiveOneOneProgress({ contractions }: FiveOneOneProgressProps) {
   return (
     <div className="flex flex-col gap-1.5 px-4">
       <div className="flex items-center justify-between">
-        <span className="uppercase tracking-wider" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-          Regra 5-1-1
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="uppercase tracking-wider" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+            Regra 5-1-1
+          </span>
+          <span style={{ fontSize: 9, color: 'var(--text-faint)' }}>última hora</span>
+        </div>
         <span
           className="px-2 py-0.5 rounded-md"
           style={{

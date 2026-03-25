@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-const CYCLE_INTERVAL_MILLISECONDS = 6000;
-const FADE_DURATION_MILLISECONDS = 600;
+const CYCLE_INTERVAL_MILLISECONDS = 8000;
+const FADE_DURATION_MILLISECONDS = 800;
 
 const BREATHING_MESSAGES = [
   'Inspira devagar… sente o ar preenchendo',
@@ -52,18 +52,19 @@ export function BreathingCoach({ isActive }: BreathingCoachProps) {
   if (!isActive) return null;
 
   return (
-    <div className="flex justify-center px-8 py-3" style={{ minHeight: 36 }}>
+    <div className="flex justify-center px-6 py-4" style={{ minHeight: 48 }}>
       <span
         style={{
-          fontSize: 13,
+          fontSize: 16,
           color: 'var(--accent)',
-          opacity: isVisible ? 0.7 : 0,
-          transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
+          opacity: isVisible ? 0.9 : 0,
+          transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.97)',
           transition: `opacity ${FADE_DURATION_MILLISECONDS}ms ease, transform ${FADE_DURATION_MILLISECONDS}ms ease`,
           textAlign: 'center',
           fontWeight: 300,
-          letterSpacing: 0.4,
+          letterSpacing: 0.5,
           fontStyle: 'italic',
+          textShadow: '0 0 20px rgba(217,77,115,0.3)',
         }}
       >
         {BREATHING_MESSAGES[messageIndex]}
