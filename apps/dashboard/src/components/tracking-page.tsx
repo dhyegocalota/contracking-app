@@ -307,6 +307,7 @@ export function TrackingPage() {
           onHelpClick={() => setInstructionsOpen(true)}
           onShareClick={handleShareClick}
           onAccountClick={() => setAccountSheetOpen(true)}
+          onSettingsClick={() => setPermissionsOpen(true)}
           onSyncClick={sync}
         />
         <StatusBanners syncStatus={syncStatus} />

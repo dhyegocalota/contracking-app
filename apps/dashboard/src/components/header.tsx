@@ -1,5 +1,5 @@
 import { SyncStatus } from '@contracking/shared';
-import { Cloud, CloudOff, HelpCircle, Loader, LogOut, Share2, User } from 'lucide-react';
+import { Cloud, CloudOff, HelpCircle, Loader, LogOut, Settings, Share2, User } from 'lucide-react';
 
 type HeaderProps = {
   patientName: string | null;
@@ -10,6 +10,7 @@ type HeaderProps = {
   onHelpClick: () => void;
   onShareClick: () => void;
   onAccountClick: () => void;
+  onSettingsClick?: () => void;
   onSyncClick?: () => void;
 };
 
@@ -45,6 +46,7 @@ export function Header({
   onHelpClick,
   onShareClick,
   onAccountClick,
+  onSettingsClick,
   onSyncClick,
 }: HeaderProps) {
   const timezoneAbbreviation = timezone ? formatTimezoneAbbreviation(timezone) : null;
@@ -70,6 +72,16 @@ export function Header({
           )}
         </div>
         <div className="flex gap-1.5 flex-shrink-0">
+          {onSettingsClick && (
+            <button
+              type="button"
+              onClick={onSettingsClick}
+              className="flex items-center justify-center w-8 h-8 rounded-[10px]"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+            >
+              <Settings size={ICON_SIZE} style={{ color: 'var(--text-secondary)' }} />
+            </button>
+          )}
           <button
             type="button"
             onClick={onHelpClick}

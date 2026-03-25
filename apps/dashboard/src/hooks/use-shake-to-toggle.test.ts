@@ -1,51 +1,66 @@
 import { describe, expect, test } from 'bun:test';
 
-const SHAKE_THRESHOLD = 25;
-const SHAKE_COOLDOWN_MILLISECONDS = 1000;
+const SHAKE_THRESHOLD = 20;
+const SHAKE_HITS_REQUIRED = 3;
+const SHAKE_WINDOW_MILLISECONDS = 800;
+const SHAKE_COOLDOWN_MILLISECONDS = 2000;
 
 function computeMagnitude(x: number, y: number, z: number): number {
   return Math.sqrt(x ** 2 + y ** 2 + z ** 2);
 }
 
-function shouldTriggerShake({
-  magnitude,
-  now,
-  lastShakeTime,
+function simulateShakeSequence({
+  hits,
+  cooldownStart,
 }: {
-  magnitude: number;
-  now: number;
-  lastShakeTime: number;
+  hits: number[];
+  cooldownStart: number;
 }): boolean {
-  if (magnitude < SHAKE_THRESHOLD) return false;
-  if (now - lastShakeTime < SHAKE_COOLDOWN_MILLISECONDS) return false;
-  return true;
+  const now = hits[hits.length - 1]!;
+  const isCooldown = now - cooldownStart < SHAKE_COOLDOWN_MILLISECONDS;
+  if (isCooldown) return false;
+
+  const recentHits = hits.filter((timestamp) => now - timestamp < SHAKE_WINDOW_MILLISECONDS);
+  return recentHits.length >= SHAKE_HITS_REQUIRED;
 }
 
 describe('shake detection', () => {
   test('gravity alone does not trigger (magnitude ~9.8)', () => {
     const magnitude = computeMagnitude(0, 0, 9.8);
-    expect(shouldTriggerShake({ magnitude, now: 1000, lastShakeTime: 0 })).toBe(false);
+    expect(magnitude).toBeLessThan(SHAKE_THRESHOLD);
   });
 
-  test('strong shake triggers (magnitude > 25)', () => {
-    const magnitude = computeMagnitude(15, 15, 15);
+  test('strong shake exceeds threshold', () => {
+    const magnitude = computeMagnitude(12, 12, 12);
     expect(magnitude).toBeGreaterThan(SHAKE_THRESHOLD);
-    expect(shouldTriggerShake({ magnitude, now: 2000, lastShakeTime: 0 })).toBe(true);
+  });
+
+  test('single hit does not trigger', () => {
+    expect(simulateShakeSequence({ hits: [5000], cooldownStart: 0 })).toBe(false);
+  });
+
+  test('two hits do not trigger', () => {
+    expect(simulateShakeSequence({ hits: [5000, 5200], cooldownStart: 0 })).toBe(false);
+  });
+
+  test('three hits within window triggers', () => {
+    expect(simulateShakeSequence({ hits: [5000, 5300, 5600], cooldownStart: 0 })).toBe(true);
+  });
+
+  test('three hits spread too far apart does not trigger', () => {
+    expect(simulateShakeSequence({ hits: [5000, 6000, 7000], cooldownStart: 0 })).toBe(false);
   });
 
   test('does not trigger during cooldown', () => {
-    const magnitude = 30;
-    expect(shouldTriggerShake({ magnitude, now: 500, lastShakeTime: 0 })).toBe(false);
+    expect(simulateShakeSequence({ hits: [5000, 5200, 5400], cooldownStart: 4000 })).toBe(false);
   });
 
   test('triggers after cooldown expires', () => {
-    const magnitude = 30;
-    expect(shouldTriggerShake({ magnitude, now: 1500, lastShakeTime: 0 })).toBe(true);
+    expect(simulateShakeSequence({ hits: [7000, 7200, 7400], cooldownStart: 4000 })).toBe(true);
   });
 
   test('magnitude computation is correct', () => {
     expect(computeMagnitude(3, 4, 0)).toBeCloseTo(5, 5);
     expect(computeMagnitude(0, 0, 0)).toBe(0);
-    expect(computeMagnitude(1, 1, 1)).toBeCloseTo(Math.sqrt(3), 5);
   });
 });

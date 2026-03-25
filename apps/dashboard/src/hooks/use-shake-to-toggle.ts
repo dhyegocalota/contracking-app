@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const SHAKE_ENABLED_KEY = 'contracking_shake_enabled';
-const SHAKE_THRESHOLD = 25;
-const SHAKE_COOLDOWN_MILLISECONDS = 1000;
+const SHAKE_THRESHOLD = 20;
+const SHAKE_HITS_REQUIRED = 3;
+const SHAKE_WINDOW_MILLISECONDS = 800;
+const SHAKE_COOLDOWN_MILLISECONDS = 2000;
 
 type DeviceMotionEventWithPermission = typeof DeviceMotionEvent & {
   requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
@@ -15,6 +17,7 @@ type UseShakeToToggleParams = {
 export function useShakeToToggle({ onShake }: UseShakeToToggleParams) {
   const [isEnabled, setIsEnabled] = useState(() => localStorage.getItem(SHAKE_ENABLED_KEY) === '1');
   const lastShakeRef = useRef(0);
+  const hitsRef = useRef<number[]>([]);
   const onShakeRef = useRef(onShake);
   onShakeRef.current = onShake;
 
@@ -56,12 +59,18 @@ export function useShakeToToggle({ onShake }: UseShakeToToggleParams) {
       if (!acceleration) return;
 
       const magnitude = Math.sqrt((acceleration.x ?? 0) ** 2 + (acceleration.y ?? 0) ** 2 + (acceleration.z ?? 0) ** 2);
+      if (magnitude < SHAKE_THRESHOLD) return;
 
       const now = Date.now();
       const isCooldown = now - lastShakeRef.current < SHAKE_COOLDOWN_MILLISECONDS;
-      if (magnitude < SHAKE_THRESHOLD) return;
       if (isCooldown) return;
 
+      hitsRef.current = hitsRef.current.filter((timestamp) => now - timestamp < SHAKE_WINDOW_MILLISECONDS);
+      hitsRef.current.push(now);
+
+      if (hitsRef.current.length < SHAKE_HITS_REQUIRED) return;
+
+      hitsRef.current = [];
       lastShakeRef.current = now;
       onShakeRef.current();
     };

@@ -9,6 +9,7 @@ import { usePushSubscription } from '../hooks/use-push-subscription';
 import { filterByDateRange } from '../utils/filter-by-date';
 import { formatDuration, formatInterval } from '../utils/format-date';
 import { DateRangeFilter } from './date-range-filter';
+import { FiveOneOneProgress } from './five-one-one-progress';
 import { PublicChart } from './public-chart';
 import { Skeleton } from './skeleton';
 import { Timeline } from './timeline';
@@ -264,6 +265,8 @@ export function PublicPage() {
             <StatCard value={stats.lastDilation ?? '—'} label="Dilatação" />
           </div>
         )}
+
+        <FiveOneOneProgress contractions={contractions} />
 
         {contractions.length > 0 && <PublicChart contractions={contractions} />}
 
