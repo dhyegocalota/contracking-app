@@ -1,18 +1,21 @@
 import { describe, expect, test } from 'bun:test';
 
 const BREATHING_MESSAGES = [
-  'Inspira... devagar pelo nariz',
-  'Expira... solta o ar pela boca',
-  'Você tá indo muito bem',
-  'Foca na respiração',
-  'Relaxa os ombros',
-  'Inspira... lento e profundo',
-  'Expira... deixa o corpo soltar',
-  'Cada contração te aproxima do bebê',
-  'Você é forte',
-  'Inspira... calma e presente',
-  'Expira... solta toda a tensão',
-  'Confia no seu corpo',
+  'Inspira devagar… sente o ar preenchendo',
+  'Solta suave… como uma onda que vai embora',
+  'Você está fazendo algo lindo',
+  'Cada respiração embala o seu bebê',
+  'Inspira… todo o amor que já existe',
+  'Expira… entrega o que não precisa mais',
+  'Seu corpo sabe exatamente o que fazer',
+  'Inspira… calma como o mar antes do amanhecer',
+  'Solta… leve como uma pétala ao vento',
+  'Essa força toda é sua, sempre foi',
+  'Inspira… presente, inteira, poderosa',
+  'Expira… abre espaço para o encontro',
+  'Logo logo ele vai estar nos seus braços',
+  'Respira fundo… você nunca esteve sozinha',
+  'Cada onda te aproxima desse momento',
 ];
 
 function getNextMessageIndex(current: number): number {
@@ -20,8 +23,8 @@ function getNextMessageIndex(current: number): number {
 }
 
 describe('breathing coach messages', () => {
-  test('has at least 10 messages for variety', () => {
-    expect(BREATHING_MESSAGES.length).toBeGreaterThanOrEqual(10);
+  test('has at least 12 messages for variety', () => {
+    expect(BREATHING_MESSAGES.length).toBeGreaterThanOrEqual(12);
   });
 
   test('all messages are non-empty strings', () => {
@@ -42,15 +45,23 @@ describe('breathing coach messages', () => {
 
   test('messages include breathing instructions', () => {
     const breathingMessages = BREATHING_MESSAGES.filter(
-      (message) => message.includes('Inspira') || message.includes('Expira'),
+      (message) =>
+        message.includes('Inspira') ||
+        message.includes('Expira') ||
+        message.includes('Solta') ||
+        message.includes('Respira'),
     );
-    expect(breathingMessages.length).toBeGreaterThanOrEqual(4);
+    expect(breathingMessages.length).toBeGreaterThanOrEqual(6);
   });
 
   test('messages include encouragement', () => {
     const encouragementMessages = BREATHING_MESSAGES.filter(
-      (message) => message.includes('bem') || message.includes('forte') || message.includes('Confia'),
+      (message) =>
+        message.includes('lindo') ||
+        message.includes('força') ||
+        message.includes('braços') ||
+        message.includes('poderosa'),
     );
-    expect(encouragementMessages.length).toBeGreaterThanOrEqual(2);
+    expect(encouragementMessages.length).toBeGreaterThanOrEqual(3);
   });
 });

@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react';
 
-const CYCLE_INTERVAL_MILLISECONDS = 4000;
+const CYCLE_INTERVAL_MILLISECONDS = 6000;
+const FADE_DURATION_MILLISECONDS = 600;
 
 const BREATHING_MESSAGES = [
-  'Inspira... devagar pelo nariz',
-  'Expira... solta o ar pela boca',
-  'Você tá indo muito bem',
-  'Foca na respiração',
-  'Relaxa os ombros',
-  'Inspira... lento e profundo',
-  'Expira... deixa o corpo soltar',
-  'Cada contração te aproxima do bebê',
-  'Você é forte',
-  'Inspira... calma e presente',
-  'Expira... solta toda a tensão',
-  'Confia no seu corpo',
+  'Inspira devagar… sente o ar preenchendo',
+  'Solta suave… como uma onda que vai embora',
+  'Você está fazendo algo lindo',
+  'Cada respiração embala o seu bebê',
+  'Inspira… todo o amor que já existe',
+  'Expira… entrega o que não precisa mais',
+  'Seu corpo sabe exatamente o que fazer',
+  'Inspira… calma como o mar antes do amanhecer',
+  'Solta… leve como uma pétala ao vento',
+  'Essa força toda é sua, sempre foi',
+  'Inspira… presente, inteira, poderosa',
+  'Expira… abre espaço para o encontro',
+  'Logo logo ele vai estar nos seus braços',
+  'Respira fundo… você nunca esteve sozinha',
+  'Cada onda te aproxima desse momento',
 ];
 
 type BreathingCoachProps = {
@@ -39,7 +43,7 @@ export function BreathingCoach({ isActive }: BreathingCoachProps) {
       setTimeout(() => {
         setMessageIndex((previous) => (previous + 1) % BREATHING_MESSAGES.length);
         setIsVisible(true);
-      }, 300);
+      }, FADE_DURATION_MILLISECONDS);
     }, CYCLE_INTERVAL_MILLISECONDS);
 
     return () => clearInterval(intervalId);
@@ -48,17 +52,18 @@ export function BreathingCoach({ isActive }: BreathingCoachProps) {
   if (!isActive) return null;
 
   return (
-    <div className="flex justify-center px-6 py-2" style={{ minHeight: 32 }}>
+    <div className="flex justify-center px-8 py-3" style={{ minHeight: 36 }}>
       <span
         style={{
           fontSize: 13,
           color: 'var(--accent)',
-          opacity: isVisible ? 0.8 : 0,
-          transform: isVisible ? 'translateY(0)' : 'translateY(4px)',
-          transition: 'opacity 0.3s ease, transform 0.3s ease',
+          opacity: isVisible ? 0.7 : 0,
+          transform: isVisible ? 'translateY(0)' : 'translateY(6px)',
+          transition: `opacity ${FADE_DURATION_MILLISECONDS}ms ease, transform ${FADE_DURATION_MILLISECONDS}ms ease`,
           textAlign: 'center',
-          fontWeight: 400,
-          letterSpacing: 0.3,
+          fontWeight: 300,
+          letterSpacing: 0.4,
+          fontStyle: 'italic',
         }}
       >
         {BREATHING_MESSAGES[messageIndex]}
