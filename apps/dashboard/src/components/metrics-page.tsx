@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { filterByDateRange } from '../utils/filter-by-date';
 import { formatDuration, formatInterval, formatShortDateTime } from '../utils/format-date';
 import { DateRangeFilter } from './date-range-filter';
-import { EventsList } from './events-list';
 import { ExportImport } from './export-import';
 import { PublicChart } from './public-chart';
 import { Timeline } from './timeline';
@@ -81,11 +80,11 @@ function MetricsEmptyStateBanner({ contractions, onDateRangeChange }: MetricsEmp
 type MetricsPageProps = {
   contractions: Contraction[];
   events: Event[];
-  onDeleteEvent: (id: string) => void;
+  onEditEvent?: (event: Event) => void;
   onImportComplete: () => void;
 };
 
-export function MetricsPage({ contractions, events, onDeleteEvent, onImportComplete }: MetricsPageProps) {
+export function MetricsPage({ contractions, events, onEditEvent, onImportComplete }: MetricsPageProps) {
   const [dateRange, setDateRange] = useState<DateRange>(DateRange.TODAY);
   const [customFrom, setCustomFrom] = useState<string | null>(null);
   const [customTo, setCustomTo] = useState<string | null>(null);
@@ -170,12 +169,12 @@ export function MetricsPage({ contractions, events, onDeleteEvent, onImportCompl
             <PublicChart contractions={filteredContractions} />
           </div>
 
-          <EventsList events={filteredEvents} onDelete={onDeleteEvent} />
-
           <Timeline
             contractions={filteredContractions}
             allContractions={contractions}
+            events={filteredEvents}
             regularity={stats.regularity}
+            onEditEvent={onEditEvent}
             onDateChange={handleDateRangeChange}
           />
         </>

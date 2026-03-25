@@ -1,7 +1,7 @@
 import type { Event } from '@contracking/shared';
 import { EventType } from '@contracking/shared';
 import type { LucideIcon } from 'lucide-react';
-import { Droplets, MessageSquare, Ruler, Utensils, X } from 'lucide-react';
+import { Droplets, MessageSquare, Ruler, Utensils } from 'lucide-react';
 import { formatTimeWithDate } from '../utils/format-date';
 
 const EVENT_ICON: Record<EventType, LucideIcon> = {
@@ -18,7 +18,9 @@ const EVENT_LABEL: Record<EventType, string> = {
   [EventType.NOTE]: 'Nota',
 };
 
-function formatEventText(event: Event): string {
+const EVENT_DOT_COLOR = 'rgba(217,77,115,0.35)';
+
+export function formatEventText(event: Event): string {
   if (event.type === EventType.DILATION) return `${EVENT_LABEL[event.type]} ${event.value}cm`;
   if (event.value) return `${EVENT_LABEL[event.type]}: ${event.value}`;
   return EVENT_LABEL[event.type];
@@ -35,31 +37,55 @@ function formatTimeForTimezone(date: Date | string, timezone: string | null): st
 type TimelineEventItemProps = {
   event: Event;
   timezone?: string | null;
-  onDelete?: (id: string) => void;
+  onEdit?: (event: Event) => void;
 };
 
-export function TimelineEventItem({ event, timezone, onDelete }: TimelineEventItemProps) {
+export function TimelineEventItem({ event, timezone, onEdit }: TimelineEventItemProps) {
   const Icon = EVENT_ICON[event.type];
   const timeLabel = timezone
     ? formatTimeForTimezone(event.occurredAt, timezone)
     : formatTimeWithDate(new Date(event.occurredAt));
 
   return (
-    <div
-      className="flex items-center gap-2 mx-1 my-0.5 rounded-lg px-3 py-1.5"
+    <button
+      type="button"
+      onClick={onEdit ? () => onEdit(event) : undefined}
+      disabled={!onEdit}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left"
       style={{
-        background: 'rgba(217,77,115,0.04)',
-        border: '1px dashed rgba(217,77,115,0.12)',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--card-border)',
+        cursor: onEdit ? 'pointer' : 'default',
       }}
     >
-      <Icon size={11} style={{ color: 'var(--accent)', flexShrink: 0, opacity: 0.6 }} />
-      <span style={{ fontSize: 11, color: 'var(--text-secondary)', flex: 1 }}>{formatEventText(event)}</span>
-      <span style={{ fontSize: 10, color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}>{timeLabel}</span>
-      {onDelete && (
-        <button type="button" onClick={() => onDelete(event.id)} style={{ color: 'var(--text-faint)' }}>
-          <X size={11} />
-        </button>
-      )}
-    </div>
+      <div className="rounded-full flex-shrink-0" style={{ width: 6, height: 6, background: EVENT_DOT_COLOR }} />
+      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+        <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+          {timeLabel}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <Icon size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+          <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{EVENT_LABEL[event.type]}</span>
+        </div>
+      </div>
+      <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--text-secondary)',
+            maxWidth: 120,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {event.value ?? '—'}
+        </span>
+        <span style={{ fontSize: 8, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          evento
+        </span>
+      </div>
+    </button>
   );
 }

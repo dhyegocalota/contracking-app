@@ -13,7 +13,7 @@ type TimelineProps = {
   timezone?: string | null;
   onEdit?: (contraction: Contraction) => void;
   onDelete?: (id: string) => void;
-  onDeleteEvent?: (id: string) => void;
+  onEditEvent?: (event: Event) => void;
   onDateChange?: (range: DateRange) => void;
 };
 
@@ -125,7 +125,7 @@ export function Timeline({
   timezone,
   onEdit,
   onDelete,
-  onDeleteEvent,
+  onEditEvent,
   onDateChange,
 }: TimelineProps) {
   const finishedContractions = [...contractions]
@@ -163,12 +163,7 @@ export function Timeline({
             {group.entries.map((entry) => {
               if (entry.kind === 'event') {
                 return (
-                  <TimelineEventItem
-                    key={entry.item.id}
-                    event={entry.item}
-                    timezone={timezone}
-                    onDelete={onDeleteEvent}
-                  />
+                  <TimelineEventItem key={entry.item.id} event={entry.item} timezone={timezone} onEdit={onEditEvent} />
                 );
               }
               return (

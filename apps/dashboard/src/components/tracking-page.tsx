@@ -1,4 +1,4 @@
-import type { Contraction } from '@contracking/shared';
+import type { Contraction, Event } from '@contracking/shared';
 import {
   calculateRegularity,
   DateRange,
@@ -22,6 +22,7 @@ import { BreathingCoach } from './breathing-coach';
 import { DateRangeFilter } from './date-range-filter';
 import { DebugPanel } from './debug-panel';
 import { EditContraction } from './edit-contraction';
+import { EditEvent } from './edit-event';
 import { EventChips } from './event-chips';
 import { EventForm } from './event-form';
 import { FiveOneOneProgress } from './five-one-one-progress';
@@ -58,6 +59,7 @@ export function TrackingPage() {
     updateContraction,
     deleteContraction,
     createEvent,
+    updateEvent,
     deleteEvent,
     sync,
     logout,
@@ -70,6 +72,7 @@ export function TrackingPage() {
   const [intensity, setIntensity] = useState<Intensity | null>(null);
   const [position, setPosition] = useState<Position | null>(null);
   const [editingContraction, setEditingContraction] = useState<Contraction | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [activeEventType, setActiveEventType] = useState<EventType | null>(null);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -246,6 +249,17 @@ export function TrackingPage() {
     setEditingContraction(null);
   };
 
+  const handleEventEditSave = (data: { value: string | null; occurredAt: string }) => {
+    if (!editingEvent) return;
+    updateEvent({ id: editingEvent.id, data: { value: data.value ?? undefined, occurredAt: data.occurredAt } });
+    setEditingEvent(null);
+  };
+
+  const handleEventEditDelete = (id: string) => {
+    deleteEvent(id);
+    setEditingEvent(null);
+  };
+
   const handleEventSubmit = (value?: string) => {
     if (!activeEventType) return;
     createEvent({ type: activeEventType, value });
@@ -312,7 +326,7 @@ export function TrackingPage() {
             <MetricsPage
               contractions={contractions}
               events={events}
-              onDeleteEvent={deleteEvent}
+              onEditEvent={setEditingEvent}
               onImportComplete={refreshFromStorage}
             />
           </div>
@@ -412,7 +426,7 @@ export function TrackingPage() {
                 newestContractionId={newestContractionId}
                 onEdit={setEditingContraction}
                 onDelete={deleteContraction}
-                onDeleteEvent={deleteEvent}
+                onEditEvent={setEditingEvent}
                 onDateChange={handleTimelineDateRangeChange}
               />
             </div>
@@ -432,6 +446,12 @@ export function TrackingPage() {
             onDelete={handleEditDelete}
             onClose={() => setEditingContraction(null)}
           />
+        )}
+      </BottomSheet>
+
+      <BottomSheet isOpen={editingEvent !== null} onClose={() => setEditingEvent(null)} title="Editar evento">
+        {editingEvent && (
+          <EditEvent event={editingEvent} onSave={handleEventEditSave} onDelete={handleEventEditDelete} />
         )}
       </BottomSheet>
 

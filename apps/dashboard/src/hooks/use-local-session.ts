@@ -26,6 +26,7 @@ import {
   type LocalSession,
   saveLocalSession,
   updateLocalContraction,
+  updateLocalEvent,
 } from '../storage';
 import { mergeWithCloud, pullFromCloud, pushToCloud } from '../sync';
 
@@ -219,6 +220,15 @@ export function useLocalSession() {
     [refreshFromStorage],
   );
 
+  const handleUpdateEvent = useCallback(
+    ({ id, data }: { id: string; data: { value?: string; occurredAt?: string } }) => {
+      updateLocalEvent({ id, data: { ...data, syncedAt: null } });
+      refreshFromStorage();
+      handleSync();
+    },
+    [refreshFromStorage, handleSync],
+  );
+
   const handleDeleteEvent = useCallback(
     (id: string) => {
       deleteLocalEvent(id);
@@ -337,6 +347,7 @@ export function useLocalSession() {
     updateContraction: handleUpdateContraction,
     deleteContraction: handleDeleteContraction,
     createEvent: handleCreateEvent,
+    updateEvent: handleUpdateEvent,
     deleteEvent: handleDeleteEvent,
     sync: handleSync,
     updateSessionInfo,

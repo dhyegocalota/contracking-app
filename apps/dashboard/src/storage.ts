@@ -183,6 +183,15 @@ export function addLocalEvent(event: LocalEvent): void {
   saveLocalSession(session);
 }
 
+export function updateLocalEvent({ id, data }: { id: string; data: Partial<LocalEvent> }): void {
+  const session = getLocalSession();
+  if (!session) return;
+  session.events = session.events.map((event) =>
+    event.id === id ? { ...event, ...data, syncedAt: null, updatedAt: new Date().toISOString() } : event,
+  );
+  saveLocalSession(session);
+}
+
 export function deleteLocalEvent(id: string): void {
   const session = getLocalSession();
   if (!session) return;

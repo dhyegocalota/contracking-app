@@ -70,7 +70,7 @@ export const INSERT_EVENT = 'INSERT INTO events (id, user_id, type, value, occur
 export const DELETE_EVENT = 'DELETE FROM events WHERE id = ?';
 
 export const UPSERT_EVENT =
-  'INSERT INTO events (id, user_id, type, value, occurred_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, value = excluded.value';
+  'INSERT INTO events (id, user_id, type, value, occurred_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET user_id = excluded.user_id, value = excluded.value, occurred_at = excluded.occurred_at';
 
 export const UPSERT_PUSH_SUBSCRIPTION =
   'INSERT INTO push_subscriptions (id, user_id, public_id, endpoint, key_p256dh, key_auth, type) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET key_p256dh = excluded.key_p256dh, key_auth = excluded.key_auth, type = excluded.type, user_id = excluded.user_id, public_id = excluded.public_id';
