@@ -2,6 +2,7 @@ import type { Contraction, Event } from '@contracking/shared';
 import { DateRange } from '@contracking/shared';
 import { formatDayHeader, formatShortDateTime, getDayKey } from '../utils/format-date';
 import { TimelineEventItem } from './timeline-event-item';
+import { TimelineInterval } from './timeline-interval';
 import { TimelineItem } from './timeline-item';
 
 type TimelineProps = {
@@ -30,9 +31,14 @@ const REGULARITY_STYLE = {
   },
 };
 
-type TimelineEntry =
-  | { kind: 'contraction'; item: Contraction; previous: Contraction | null }
-  | { kind: 'event'; item: Event };
+type TimelineEntry = {
+  kind: 'contraction' | 'event';
+  id: string;
+  timestamp: number;
+  endTimestamp: number | null;
+  contraction?: Contraction;
+  event?: Event;
+};
 
 type DayGroup = {
   key: string;
@@ -47,17 +53,30 @@ function buildInterleavedTimeline({
   contractions: Contraction[];
   events: Event[];
 }): TimelineEntry[] {
-  const contractionEntries: { timestamp: number; entry: TimelineEntry }[] = contractions.map((contraction, index) => ({
+  const contractionEntries: TimelineEntry[] = contractions.map((contraction) => ({
+    kind: 'contraction',
+    id: contraction.id,
     timestamp: new Date(contraction.startedAt).getTime(),
-    entry: { kind: 'contraction', item: contraction, previous: contractions[index + 1] ?? null },
+    endTimestamp: contraction.endedAt ? new Date(contraction.endedAt).getTime() : null,
+    contraction,
   }));
 
-  const eventEntries: { timestamp: number; entry: TimelineEntry }[] = events.map((event) => ({
+  const eventEntries: TimelineEntry[] = events.map((event) => ({
+    kind: 'event',
+    id: event.id,
     timestamp: new Date(event.occurredAt).getTime(),
-    entry: { kind: 'event', item: event },
+    endTimestamp: new Date(event.occurredAt).getTime(),
+    event,
   }));
 
-  return [...contractionEntries, ...eventEntries].sort((a, b) => b.timestamp - a.timestamp).map((item) => item.entry);
+  return [...contractionEntries, ...eventEntries].sort((a, b) => b.timestamp - a.timestamp);
+}
+
+function computeIntervalBetween(current: TimelineEntry, next: TimelineEntry): number | null {
+  const nextEnd = next.endTimestamp ?? next.timestamp;
+  const intervalSeconds = Math.round((current.timestamp - nextEnd) / 1000);
+  if (intervalSeconds <= 0) return null;
+  return intervalSeconds;
 }
 
 function groupEntriesByDay(entries: TimelineEntry[]): DayGroup[] {
@@ -65,7 +84,7 @@ function groupEntriesByDay(entries: TimelineEntry[]): DayGroup[] {
   let currentKey = '';
 
   for (const entry of entries) {
-    const date = entry.kind === 'contraction' ? new Date(entry.item.startedAt) : new Date(entry.item.occurredAt);
+    const date = new Date(entry.timestamp);
     const key = getDayKey(date);
     if (key !== currentKey) {
       currentKey = key;
@@ -133,8 +152,8 @@ export function Timeline({
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
 
   const regularityStyle = regularity ? REGULARITY_STYLE[regularity] : null;
-  const entries = buildInterleavedTimeline({ contractions: finishedContractions, events });
-  const dayGroups = groupEntriesByDay(entries);
+  const allEntries = buildInterleavedTimeline({ contractions: finishedContractions, events });
+  const dayGroups = groupEntriesByDay(allEntries);
 
   return (
     <div className="flex flex-col gap-2 px-4">
@@ -160,21 +179,25 @@ export function Timeline({
             <div className="px-4 py-1 uppercase tracking-wider" style={{ fontSize: 9, color: 'var(--text-faint)' }}>
               {group.label}
             </div>
-            {group.entries.map((entry) => {
-              if (entry.kind === 'event') {
-                return (
-                  <TimelineEventItem key={entry.item.id} event={entry.item} timezone={timezone} onEdit={onEditEvent} />
-                );
-              }
+            {group.entries.map((entry, index) => {
+              const nextEntry = group.entries[index + 1] ?? null;
+              const intervalSeconds = nextEntry ? computeIntervalBetween(entry, nextEntry) : null;
+
               return (
-                <TimelineItem
-                  key={entry.item.id}
-                  contraction={entry.item}
-                  previousContraction={entry.previous}
-                  isNew={entry.item.id === newestContractionId}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
+                <div key={entry.id}>
+                  {entry.kind === 'event' && entry.event && (
+                    <TimelineEventItem event={entry.event} timezone={timezone} onEdit={onEditEvent} />
+                  )}
+                  {entry.kind === 'contraction' && entry.contraction && (
+                    <TimelineItem
+                      contraction={entry.contraction}
+                      isNew={entry.id === newestContractionId}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  )}
+                  {intervalSeconds !== null && <TimelineInterval seconds={intervalSeconds} />}
+                </div>
               );
             })}
           </div>

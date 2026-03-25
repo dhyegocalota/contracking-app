@@ -1,10 +1,9 @@
 import type { Contraction } from '@contracking/shared';
 import { Intensity, Position } from '@contracking/shared';
-import { formatDuration, formatInterval, formatTimeWithDate } from '../utils/format-date';
+import { formatDuration, formatTimeWithDate } from '../utils/format-date';
 
 type TimelineItemProps = {
   contraction: Contraction;
-  previousContraction: Contraction | null;
   isNew?: boolean;
   onEdit?: (contraction: Contraction) => void;
   onDelete?: (id: string) => void;
@@ -45,13 +44,6 @@ function computeDurationSeconds(startedAt: Date | string, endedAt: Date | string
   return Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000);
 }
 
-function computeIntervalSeconds(contraction: Contraction, previousContraction: Contraction | null): number | null {
-  if (!previousContraction?.endedAt) return null;
-  return Math.round(
-    (new Date(contraction.startedAt).getTime() - new Date(previousContraction.endedAt).getTime()) / 1000,
-  );
-}
-
 type MiniBarsProps = {
   intensity: Intensity;
 };
@@ -83,74 +75,56 @@ function MiniBars({ intensity }: MiniBarsProps) {
   );
 }
 
-export function TimelineItem({ contraction, previousContraction, isNew, onEdit, onDelete: _ }: TimelineItemProps) {
+export function TimelineItem({ contraction, isNew, onEdit, onDelete: _ }: TimelineItemProps) {
   const dotConfig = contraction.intensity ? DOT_COLOR[contraction.intensity] : { color: 'var(--text-muted)' };
   const durationSeconds = computeDurationSeconds(contraction.startedAt, contraction.endedAt);
-  const intervalSeconds = computeIntervalSeconds(contraction, previousContraction);
 
   return (
-    <div className="flex flex-col">
-      <button
-        type="button"
-        onClick={onEdit ? () => onEdit(contraction) : undefined}
-        disabled={!onEdit}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left"
-        style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--card-border)',
-          cursor: onEdit ? 'pointer' : 'default',
-          animation: isNew ? 'newItem 0.4s cubic-bezier(0.22,1,0.36,1)' : undefined,
-        }}
-      >
-        <div
-          className="rounded-full flex-shrink-0"
-          style={{ width: 6, height: 6, background: dotConfig.color, boxShadow: dotConfig.shadow }}
-        />
-        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-          <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
-            {formatTimeWithDate(new Date(contraction.startedAt))}
-          </span>
-          <div className="flex items-center gap-1.5">
-            {contraction.intensity && <MiniBars intensity={contraction.intensity} />}
-            {contraction.intensity && (
-              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{INTENSITY_LABEL[contraction.intensity]}</span>
-            )}
-            {contraction.position && (
-              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{POSITION_LABEL[contraction.position]}</span>
-            )}
-          </div>
+    <button
+      type="button"
+      onClick={onEdit ? () => onEdit(contraction) : undefined}
+      disabled={!onEdit}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left"
+      style={{
+        background: 'var(--card-bg)',
+        border: '1px solid var(--card-border)',
+        cursor: onEdit ? 'pointer' : 'default',
+        animation: isNew ? 'newItem 0.4s cubic-bezier(0.22,1,0.36,1)' : undefined,
+      }}
+    >
+      <div
+        className="rounded-full flex-shrink-0"
+        style={{ width: 6, height: 6, background: dotConfig.color, boxShadow: dotConfig.shadow }}
+      />
+      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+        <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+          {formatTimeWithDate(new Date(contraction.startedAt))}
+        </span>
+        <div className="flex items-center gap-1.5">
+          {contraction.intensity && <MiniBars intensity={contraction.intensity} />}
+          {contraction.intensity && (
+            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{INTENSITY_LABEL[contraction.intensity]}</span>
+          )}
+          {contraction.position && (
+            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{POSITION_LABEL[contraction.position]}</span>
+          )}
         </div>
-        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-          <span
-            style={{
-              fontSize: 15,
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {durationSeconds !== null ? formatDuration(durationSeconds) : '—'}
-          </span>
-          <span style={{ fontSize: 8, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            duração
-          </span>
-        </div>
-      </button>
-      {intervalSeconds !== null && (
-        <div className="flex items-center gap-2 py-1.5 px-4">
-          <div style={{ width: 1, height: 8, background: 'var(--divider)', marginLeft: 2 }} />
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: 'var(--text-muted)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {formatInterval(intervalSeconds)} de intervalo
-          </span>
-        </div>
-      )}
-    </div>
+      </div>
+      <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {durationSeconds !== null ? formatDuration(durationSeconds) : '—'}
+        </span>
+        <span style={{ fontSize: 8, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          duração
+        </span>
+      </div>
+    </button>
   );
 }

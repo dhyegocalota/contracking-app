@@ -12,18 +12,19 @@ const EVENT_ICON: Record<EventType, LucideIcon> = {
 };
 
 const EVENT_LABEL: Record<EventType, string> = {
-  [EventType.WATER_BREAK]: 'Bolsa',
+  [EventType.WATER_BREAK]: 'Bolsa rompida',
   [EventType.MEAL]: 'Refeição',
   [EventType.DILATION]: 'Dilatação',
   [EventType.NOTE]: 'Nota',
 };
 
-const EVENT_DOT_COLOR = 'rgba(217,77,115,0.35)';
+const EVENT_DOT_COLOR = 'rgba(100,160,180,0.6)';
+const EVENT_ICON_COLOR = 'rgba(100,160,180,0.5)';
 
 export function formatEventText(event: Event): string {
-  if (event.type === EventType.DILATION) return `${EVENT_LABEL[event.type]} ${event.value}cm`;
-  if (event.value) return `${EVENT_LABEL[event.type]}: ${event.value}`;
-  return EVENT_LABEL[event.type];
+  if (event.type === EventType.DILATION) return `${event.value}cm`;
+  if (event.value) return event.value;
+  return '';
 }
 
 function formatTimeForTimezone(date: Date | string, timezone: string | null): string {
@@ -45,13 +46,14 @@ export function TimelineEventItem({ event, timezone, onEdit }: TimelineEventItem
   const timeLabel = timezone
     ? formatTimeForTimezone(event.occurredAt, timezone)
     : formatTimeWithDate(new Date(event.occurredAt));
+  const valueText = formatEventText(event);
 
   return (
     <button
       type="button"
       onClick={onEdit ? () => onEdit(event) : undefined}
       disabled={!onEdit}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left"
+      className="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] text-left"
       style={{
         background: 'var(--card-bg)',
         border: '1px solid var(--card-border)',
@@ -64,7 +66,7 @@ export function TimelineEventItem({ event, timezone, onEdit }: TimelineEventItem
           {timeLabel}
         </span>
         <div className="flex items-center gap-1.5">
-          <Icon size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+          <Icon size={10} style={{ color: EVENT_ICON_COLOR, flexShrink: 0 }} />
           <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{EVENT_LABEL[event.type]}</span>
         </div>
       </div>
@@ -73,14 +75,15 @@ export function TimelineEventItem({ event, timezone, onEdit }: TimelineEventItem
           style={{
             fontSize: 13,
             fontWeight: 500,
-            color: 'var(--text-secondary)',
+            color: 'var(--text-muted)',
             maxWidth: 120,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
+            fontStyle: valueText ? 'normal' : 'italic',
           }}
         >
-          {event.value ?? '—'}
+          {valueText || '—'}
         </span>
         <span style={{ fontSize: 8, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
           evento
