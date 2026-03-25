@@ -13,7 +13,9 @@ import { useLocalSession } from '../hooks/use-local-session';
 import { useNotifications } from '../hooks/use-notifications';
 import { usePullToSync } from '../hooks/use-pull-to-sync';
 import { usePushSubscription } from '../hooks/use-push-subscription';
+import { useShakeToToggle } from '../hooks/use-shake-to-toggle';
 import { useTimer } from '../hooks/use-timer';
+import { useWakeLock } from '../hooks/use-wake-lock';
 import { getPreferences, savePreferences } from '../storage';
 import { filterByDateRange } from '../utils/filter-by-date';
 import { AccountSheet } from './account-sheet';
@@ -31,6 +33,7 @@ import { INSTRUCTIONS_SEEN_KEY, InstructionsModal } from './instructions-modal';
 import { IntensityChips } from './intensity-chips';
 import { MainButton } from './main-button';
 import { MetricsPage } from './metrics-page';
+import { PERMISSIONS_SEEN_KEY, PermissionsModal } from './permissions-modal';
 import { PositionChips } from './position-chips';
 import { PullToSyncIndicator } from './pull-to-sync-indicator';
 import { ShareModal } from './share-modal';
@@ -75,6 +78,7 @@ export function TrackingPage() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [activeEventType, setActiveEventType] = useState<EventType | null>(null);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
@@ -121,7 +125,13 @@ export function TrackingPage() {
   });
 
   useEffect(() => {
-    if (!localStorage.getItem(INSTRUCTIONS_SEEN_KEY)) setInstructionsOpen(true);
+    const instructionsSeen = !!localStorage.getItem(INSTRUCTIONS_SEEN_KEY);
+    const permissionsSeen = !!localStorage.getItem(PERMISSIONS_SEEN_KEY);
+    if (!instructionsSeen) {
+      setInstructionsOpen(true);
+      return;
+    }
+    if (!permissionsSeen) setPermissionsOpen(true);
   }, []);
 
   const unsyncedCount =
@@ -167,6 +177,8 @@ export function TrackingPage() {
     enabled: syncStatus !== SyncStatus.NOT_AUTHENTICATED,
   });
 
+  const wakeLock = useWakeLock();
+
   useNotifications({ activeContraction, onAutoStop: handleAutoStop, onPermissionGranted: subscribePush });
 
   const isVisuallyActive = activeContraction !== null && !isStopping;
@@ -208,6 +220,8 @@ export function TrackingPage() {
     timer.reset();
     timer.start();
   };
+
+  const shake = useShakeToToggle({ onShake: handleButtonPress });
 
   const handleIntensityChange = (value: Intensity) => {
     const nextIntensity = intensity === value ? null : value;
@@ -480,7 +494,20 @@ export function TrackingPage() {
         onSync={sync}
       />
 
-      <InstructionsModal isOpen={instructionsOpen} onClose={() => setInstructionsOpen(false)} />
+      <InstructionsModal
+        isOpen={instructionsOpen}
+        onClose={() => {
+          setInstructionsOpen(false);
+          if (!localStorage.getItem(PERMISSIONS_SEEN_KEY)) setPermissionsOpen(true);
+        }}
+      />
+
+      <PermissionsModal
+        isOpen={permissionsOpen}
+        onClose={() => setPermissionsOpen(false)}
+        wakeLock={wakeLock}
+        shake={shake}
+      />
 
       <ShareModal
         isOpen={shareOpen}
