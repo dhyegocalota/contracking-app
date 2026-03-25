@@ -277,19 +277,26 @@ export function PublicPage() {
           timezone={timezone}
         />
 
-        <div
-          className="flex flex-col items-center gap-2 py-6 mt-2 rounded-xl"
-          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+        <div style={{ height: 72 }} />
+      </div>
+
+      <div
+        className="fixed bottom-0 left-0 right-0 flex justify-center py-3 px-4"
+        style={{
+          background: 'linear-gradient(transparent, var(--bg) 30%)',
+          paddingTop: 24,
+        }}
+      >
+        <a
+          href="/"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold text-white"
+          style={{
+            background: 'var(--accent)',
+            boxShadow: '0 4px 20px rgba(217,77,115,0.3)',
+          }}
         >
-          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Acompanhe suas contrações em tempo real</span>
-          <a
-            href="/"
-            className="px-5 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: 'var(--accent)' }}
-          >
-            Usar o Contracking
-          </a>
-        </div>
+          Usar o Contracking
+        </a>
       </div>
     </div>
   );

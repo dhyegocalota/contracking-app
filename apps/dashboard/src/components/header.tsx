@@ -1,5 +1,5 @@
 import { SyncStatus } from '@contracking/shared';
-import { Cloud, CloudOff, HelpCircle, Loader, LogOut, Settings, Share2, User } from 'lucide-react';
+import { Cloud, CloudOff, Loader, LogOut, Settings, Share2, User } from 'lucide-react';
 
 type HeaderProps = {
   patientName: string | null;
@@ -65,11 +65,20 @@ export function Header({
           <h1 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
             Contracking
           </h1>
-          {subtitleParts && (
-            <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
-              {subtitleParts}
-            </p>
-          )}
+          <div className="flex items-center gap-2">
+            {subtitleParts && (
+              <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                {subtitleParts}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={onHelpClick}
+              style={{ fontSize: 10, color: 'var(--text-faint)', flexShrink: 0 }}
+            >
+              ajuda
+            </button>
+          </div>
         </div>
         <div className="flex gap-1.5 flex-shrink-0">
           {onSettingsClick && (
@@ -82,14 +91,6 @@ export function Header({
               <Settings size={ICON_SIZE} style={{ color: 'var(--text-secondary)' }} />
             </button>
           )}
-          <button
-            type="button"
-            onClick={onHelpClick}
-            className="flex items-center justify-center w-8 h-8 rounded-[10px]"
-            style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
-          >
-            <HelpCircle size={ICON_SIZE} style={{ color: 'var(--text-secondary)' }} />
-          </button>
           {showSync &&
             (isSyncClickable ? (
               <button

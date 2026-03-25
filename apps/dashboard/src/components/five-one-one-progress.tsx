@@ -30,7 +30,7 @@ function computeProgress(contractions: Contraction[]): {
   durationMet: boolean;
   windowMet: boolean;
 } {
-  const finished = contractions.sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime());
+  const finished = contractions.sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
 
   if (finished.length < FIVE_ONE_ONE_MIN_CONTRACTIONS) {
     return {
@@ -46,13 +46,18 @@ function computeProgress(contractions: Contraction[]): {
   const lastFive = finished.slice(-FIVE_ONE_ONE_MIN_CONTRACTIONS);
   const intervals = lastFive
     .slice(1)
-    .map((contraction, index) => (contraction.startedAt.getTime() - lastFive[index]!.startedAt.getTime()) / 1000);
+    .map(
+      (contraction, index) =>
+        (new Date(contraction.startedAt).getTime() - new Date(lastFive[index]!.startedAt).getTime()) / 1000,
+    );
   const averageInterval = intervals.reduce((sum, value) => sum + value, 0) / intervals.length;
   const averageDuration =
     lastFive
-      .map((contraction) => (contraction.endedAt!.getTime() - contraction.startedAt.getTime()) / 1000)
+      .map(
+        (contraction) => (new Date(contraction.endedAt!).getTime() - new Date(contraction.startedAt).getTime()) / 1000,
+      )
       .reduce((sum, value) => sum + value, 0) / lastFive.length;
-  const windowElapsed = (Date.now() - lastFive[0]!.startedAt.getTime()) / 1000;
+  const windowElapsed = (Date.now() - new Date(lastFive[0]!.startedAt).getTime()) / 1000;
 
   return {
     intervalMinutes: Math.round(averageInterval / 60),
